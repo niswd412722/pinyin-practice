@@ -24,23 +24,24 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync ios
-        continue-on-error: true
 
       - name: Show iOS folder
-        run: ls -la ios/
+        run: ls -la ios/ && ls -la ios/App/
 
       - name: Build iOS project
         run: |
           cd ios/App
-          xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO archive
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO archive 2>&1 | tail -50
 
       - name: Export IPA
+        if: success()
         run: |
           mkdir -p output
           cd ios/App
-          xcodebuild -exportArchive -archive-path build/Archive/*.xcarchive -exportPath ../output -scheme App CODE_SIGNING_ALLOWED=NO -configuration Release
+          xcodebuild -exportArchive -archive-path build/Archive/*.xcarchive -exportPath ../output -scheme App CODE_SIGNING_ALLOWED=NO -configuration Release 2>&1 | tail -20
 
       - name: Upload IPA
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pinyin-practice-ipa
