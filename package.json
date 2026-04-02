@@ -1,0 +1,14 @@
+{
+  "name": "拼音打字练习",
+  "version": "1.0.0",
+  "description": "练习拼音输入的打字工具",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/ios": "^8.3.0",
+    "express": "^4.18.2"
+  }
+}
