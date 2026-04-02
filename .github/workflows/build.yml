@@ -28,19 +28,21 @@ jobs:
       - name: Build iOS project
         run: |
           cd ios/App
-          xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO archive
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
 
-      - name: Export IPA
+      - name: Find and package IPA
         if: success()
         run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "App.app" -type d 2>/dev/null | grep -v ".ipa" | head -1)
+          echo "App found at: $APP_PATH"
           mkdir -p output
-          cd ios/App
-          xcodebuild -exportArchive -archivePath build/Archive/*.xcarchive -exportPath ../output -exportOptionsPlist ExportOptions.plist CODE_SIGNING_ALLOWED=NO -configuration Release
+          cd "$(dirname "$APP_PATH")"
+          zip -r ~/output/App.ipa App.app
 
       - name: Upload IPA
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pinyin-practice-ipa
-          path: output/*.ipa
+          path: ~/output/*.ipa
           retention-days: 7
