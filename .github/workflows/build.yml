@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p output
           cd ios/App
-          xcodebuild -exportArchive -archive-path build/Archive/*.xcarchive -exportPath ../output -scheme App CODE_SIGNING_ALLOWED=NO -configuration Release
+          xcodebuild -exportArchive -archivePath build/Archive/*.xcarchive -exportPath ../output -scheme App CODE_SIGNING_ALLOWED=NO -configuration Release
 
       - name: Upload IPA
         if: success()
