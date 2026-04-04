@@ -1,6 +1,47 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+// ======== 韵母专项词库 ========
+const YM_PRACTICE = [
+  {ym:'a',   label:'a — 啊型', chars:['啊','妈','把','卡','塔','拿','拉']},
+  {ym:'o',   label:'o — 哦型', chars:['哦','波','坡','摸','佛','博']},
+  {ym:'e',   label:'e — 鹅型', chars:['鹅','喝','歌','科','乐','得','特']},
+  {ym:'i',   label:'i — 衣型', chars:['衣','比','皮','米','低','你','梨','七','西']},
+  {ym:'u',   label:'u — 乌型', chars:['乌','不','普','木','读','图','路','古']},
+  {ym:'v',   label:'ü/v — 鱼型', chars:['鱼','绿','女','居','区','需']},
+  {ym:'ai',  label:'ai — 爱型', chars:['爱','白','买','代','菜','在','来']},
+  {ym:'ei',  label:'ei — 诶型', chars:['诶','北','配','美','累','给','黑']},
+  {ym:'ui',  label:'ui — 威型', chars:['威','归','回','推','随','对']},
+  {ym:'ao',  label:'ao — 奥型', chars:['奥','包','跑','道','套','老','高']},
+  {ym:'ou',  label:'ou — 欧型', chars:['欧','走','口','后','收','楼']},
+  {ym:'iu',  label:'iu — 优型', chars:['优','六','九','求','休','牛']},
+  {ym:'ie',  label:'ie — 叶型', chars:['叶','别','撇','灭','跌','铁','捏']},
+  {ym:'ve',  label:'üe/ve — 约型', chars:['月','约','掠','虐','学','却']},
+  {ym:'er',  label:'er — 二型', chars:['二','而','儿','耳']},
+  {ym:'an',  label:'an — 安型', chars:['安','班','盘','蛋','谈','南','山']},
+  {ym:'en',  label:'en — 恩型', chars:['恩','本','门','能','冷','根','真']},
+  {ym:'in',  label:'in — 音型', chars:['音','心','金','新','林','亲']},
+  {ym:'un',  label:'un — 温型', chars:['温','春','文','军','群','吨']},
+  {ym:'vn',  label:'ün/vn — 晕型', chars:['云','军','群','晕','训']},
+  {ym:'ang', label:'ang — 昂型', chars:['昂','帮','旁','当','糖','囊','长']},
+  {ym:'eng', label:'eng — 鞥型', chars:['鞥','崩','朋','等','疼','能']},
+  {ym:'ing', label:'ing — 英型', chars:['英','听','星','轻','青','名']},
+  {ym:'ong', label:'ong — 翁型', chars:['翁','东','通','龙','工','空','红']},
+  {ym:'ia',  label:'ia — 家型', chars:['家','下','恰','夏']},
+  {ym:'ua',  label:'ua — 挂型', chars:['挂','夸','花','抓','刷']},
+  {ym:'uo',  label:'uo — 国型', chars:['国','过','火','桌','说','窝']},
+  {ym:'ian', label:'ian — 面型', chars:['面','电','天','年','连','眼','前']},
+  {ym:'iang',label:'iang — 江型', chars:['江','想','香','强','响']},
+  {ym:'iong',label:'iong — 用型', chars:['用','胸','穷','熊','凶']},
+  {ym:'uan', label:'uan — 关型', chars:['关','环','全','宣','元','原']},
+  {ym:'uang',label:'uang — 光型', chars:['光','广','窗','双','狂','王']},
+];
+const YM_BY_LEVEL = {
+  1: YM_PRACTICE.filter(w => ['a','o','e','i','u','v','ai','ei','ao','ou','iu','ie','ve','an','en','ang','eng','ong'].includes(w.ym)),
+  2: YM_PRACTICE.filter(w => ['i','u','v','ui','iu','in','un','vn','ian','iang','uan','uang','iong','er'].includes(w.ym)),
+  3: YM_PRACTICE,
+};
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>拼音打字练习</title>
@@ -242,6 +283,8 @@
   <div class="ctrl-group">
     <button class="ctrl-btn active" data-mode="pinyin">看字打字</button>
     <button class="ctrl-btn" data-mode="sm">声母韵母</button>
+    <button class="ctrl-btn" data-mode="ym">韵母专项</button>
+    <button class="ctrl-btn" data-mode="ym">韵母专项</button>
     <button class="ctrl-btn" data-mode="dictation">听写</button>
   </div>
   <div class="ctrl-group" id="lvlGroup">
@@ -513,6 +556,7 @@ const WORDS = {
 
 // ======== 状态 ========
 let mode = 'pinyin';
+let ymPool = [];
 let level = 1;
 let word = null;
 let correct = 0, total = 0;
@@ -543,11 +587,15 @@ function initRound() {
   let pool;
   if (mode === 'sm') {
     pool = [...(SM_WORDS[level] || SM_WORDS[1])];
+  } else if (mode === 'ym') {
+    ymPool = [...(YM_BY_LEVEL[level] || YM_BY_LEVEL[1])];
+    ymPool.sort(() => Math.random() - 0.5);
+    pool = [];
   } else {
     pool = [...(WORDS[level] || WORDS[1])];
   }
   const count = mode === 'sm' ? 15 : (level === 3 ? 8 : 12);
-  roundWords = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
+  roundWords = mode === 'ym' ? [] : pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
   wordIndex = 0;
   sessionCorrect = {};
   smPhase = 'sm';
@@ -559,7 +607,8 @@ function initRound() {
 }
 
 function buildDots() {
-  dotsEl.innerHTML = roundWords.map((_, i) =>
+  const len = mode === 'ym' ? ymPool.length : roundWords.length;
+  dotsEl.innerHTML = Array.from({length: len}, (_, i) =>
     `<div class="dot" id="dot${i}" data-i="${i}">${i + 1}</div>`
   ).join('');
 }
@@ -572,7 +621,8 @@ function showWord() {
   doneAnswered = false;
 
   // 更新进度圈
-  for (let i = 0; i < roundWords.length; i++) {
+  const totalDots = mode === 'ym' ? ymPool.length : roundWords.length;
+  for (let i = 0; i < totalDots; i++) {
     const d = document.getElementById('dot' + i);
     if (!d) continue;
     if (sessionCorrect[i] === true) d.className = 'dot done';
@@ -595,20 +645,31 @@ function showWord() {
     phaseIndicatorEl.style.display = 'flex';
     updatePhaseBadges();
     inpEl.placeholder = '输入声母（如 b, zh, ch）';
+  } else if (mode === 'ym') {
+    smPhase = 'ym';
+    const item = ymPool[wordIndex];
+    wordEl.textContent = item.chars.join(' · ');
+    pyHintEl.innerHTML = `<span style="color:#888;font-size:14px">这些字的韵母是什么？</span>`;
+    inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
+    phaseIndicatorEl.style.display = 'flex';
+    badgeSmEl.className = 'phase-badge active-ym';
+    badgeSmEl.textContent = '韵母？';
+    badgeYmEl.style.display = 'none';
+    inpEl.placeholder = `输入韵母（如 ${item.ym}）`;
   } else if (mode === 'dictation') {
-    // 听写模式：显示拼音
     wordEl.textContent = word.p;
     pyHintEl.innerHTML = '';
     inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
     phaseIndicatorEl.style.display = 'none';
+    badgeYmEl.style.display = '';
     inpEl.placeholder = '输入汉字';
   } else {
-    // 看字打字模式
     wordEl.textContent = word.w;
     const parts = word.p.split(' ').map(s => splitSM(s)).join(' &nbsp; ');
     pyHintEl.innerHTML = parts;
     inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
     phaseIndicatorEl.style.display = 'none';
+    badgeYmEl.style.display = '';
     inpEl.placeholder = '输入拼音（不用声调）';
   }
   inpEl.focus();
@@ -649,8 +710,9 @@ function showResult() {
   inputWrapEl.style.display = 'none';
   phaseIndicatorEl.style.display = 'none';
   resultEl.classList.add('show');
-  document.getElementById('rRate').textContent = roundWords.length > 0 ? Math.round(correct / roundWords.length * 100) + '%' : '0%';
-  document.getElementById('rTotal').textContent = roundWords.length;
+  const resLen = mode === 'ym' ? ymPool.length : roundWords.length;
+  document.getElementById('rRate').textContent = resLen > 0 ? Math.round(correct / resLen * 100) + '%' : '0%';
+  document.getElementById('rTotal').textContent = resLen;
 }
 
 function resetAll() {
@@ -715,6 +777,20 @@ inpEl.addEventListener('keydown', (e) => {
 function handleSMInput() {
   const input = inpEl.value.trim().toLowerCase();
   if (!input) { inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb'; return; }
+
+  if (mode === 'ym') {
+    const item = ymPool[wordIndex];
+    const norm = input.replace(/ü/g, 'v');
+    if (norm === item.ym) {
+      inpEl.className = 'ok'; fbEl.textContent = `✓ 正确！韵母是 ${item.ym}`; fbEl.className = 'fb ok';
+      doneAnswered = true; sessionCorrect[wordIndex] = true; correct++; updateStats();
+    } else if (item.ym.startsWith(norm) || norm.startsWith(item.ym)) {
+      inpEl.className = ''; fbEl.textContent = '差一点'; fbEl.className = 'fb info';
+    } else {
+      inpEl.className = 'err'; fbEl.textContent = `✗ 韵母是 "${item.ym}"`; fbEl.className = 'fb err';
+    }
+    return;
+  }
 
   if (smPhase === 'sm') {
     // 检验声母
@@ -805,6 +881,8 @@ function commitYM() {
 
 function goNext() {
   wordIndex++;
+  const maxLen = mode === 'ym' ? ymPool.length : roundWords.length;
+  if (wordIndex >= maxLen) { showResult(); return; }
   showWord();
 }
 
@@ -827,7 +905,8 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     inpEl.placeholder = newMode === 'dictation' ? '输入汉字'
                 : newMode === 'sm' ? '输入声母（如 b, zh）'
                 : '输入拼音（不用声调）';
-    phaseIndicatorEl.style.display = newMode === 'sm' ? 'flex' : 'none';
+    phaseIndicatorEl.style.display = (newMode === 'sm' || newMode === 'ym') ? 'flex' : 'none';
+    badgeYmEl.style.display = newMode === 'ym' ? 'none' : '';
     resetAll();
   });
 });
