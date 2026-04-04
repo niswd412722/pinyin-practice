@@ -1,1 +1,9 @@
-{"appId":"com.pinyin.practice","appName":"拼音打字练习","webDir":"public","ios":{"contentSource":"public"},"plugins":{"CapacitorConfig":{}}}
+{
+  "appId": "com.pinyin.practice",
+  "appName": "拼音打字练习",
+  "webDir": "public",
+  "webViewDebugEnabled": false,
+  "ios": {
+    "contentSource": "public"
+  }
+}
