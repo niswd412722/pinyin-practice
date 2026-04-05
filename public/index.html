@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼音打字练习</title>
 // ======== 韵母专项词库 ========
 const YM_PRACTICE = [
   {ym:'a',   label:'a — 啊型', chars:['啊','妈','把','卡','塔','拿','拉']},
@@ -42,9 +45,6 @@ const YM_BY_LEVEL = {
   3: YM_PRACTICE,
 };
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拼音打字练习</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -283,7 +283,6 @@ const YM_BY_LEVEL = {
   <div class="ctrl-group">
     <button class="ctrl-btn active" data-mode="pinyin">看字打字</button>
     <button class="ctrl-btn" data-mode="sm">声母韵母</button>
-    <button class="ctrl-btn" data-mode="ym">韵母专项</button>
     <button class="ctrl-btn" data-mode="ym">韵母专项</button>
     <button class="ctrl-btn" data-mode="dictation">听写</button>
   </div>
