@@ -93,12 +93,13 @@
   /* 输入框 */
   .input-wrap { width: 100%; max-width: 500px; }
   #inp {
-    width: 100%; padding: 12px 18px; font-size: 22px;
-    text-align: center; border: 2px solid #2a2a4a; border-radius: 12px;
-    background: #16213e; color: #fff; outline: none;
-    font-family: monospace; letter-spacing: 2px; transition: border-color 0.15s;
+    width: 100%; padding: 14px 18px; font-size: 24px;
+    text-align: center; border: 2px solid #5a5a8a; border-radius: 14px;
+    background: #1e2a4a; color: #fff; outline: none;
+    font-family: monospace; letter-spacing: 3px; transition: border-color 0.15s;
+    box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
   }
-  #inp:focus { border-color: #e94560; }
+  #inp:focus { border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,0.3); }
   #inp.ok { border-color: #4ade80; background: rgba(74,222,128,0.08); }
   #inp.err { border-color: #f87171; background: rgba(248,113,113,0.08); }
   .fb { height: 22px; margin-top: 8px; font-size: 14px; text-align: center; }
@@ -836,11 +837,11 @@ function showWord() {
     smPhase = 'ym';
     const item = ymPool[wordIndex];
     wordEl.textContent = item.chars.join(' · ');
-    pyHintEl.innerHTML = `<span style="color:#888;font-size:14px">这些字的韵母是什么？</span>`;
+    pyHintEl.innerHTML = `<span style="color:#888;font-size:15px">这些字共同的韵母是什么？</span><br><span style="color:#3b82f6;font-size:12px">点击下方输入框后再输入</span>`;
     inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
     phaseIndicatorEl.style.display = 'flex';
     badgeSmEl.className = 'phase-badge active-ym';
-    badgeSmEl.textContent = '韵母？';
+    badgeSmEl.textContent = '韵母练习';
     badgeYmEl.style.display = 'none';
     inpEl.placeholder = `输入韵母（如 ${item.ym}）`;
   } else if (mode === 'dictation') {
