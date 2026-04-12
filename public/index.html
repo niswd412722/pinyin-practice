@@ -721,8 +721,9 @@ let smPhase = 'sm'; // 'sm' | 'ym' | 'done'
 let smCorrect = false, ymCorrect = false;
 
 // 错题本
-let wrongWords = JSON.parse(localStorage.getItem('pinyin-wrong') || '[]');
-function saveWrong() { localStorage.setItem('pinyin-wrong', JSON.stringify(wrongWords)); updateWrongCount(); }
+let wrongWords = [];
+try { wrongWords = JSON.parse(localStorage.getItem('pinyin-wrong') || '[]'); } catch(e) { wrongWords = []; }
+function saveWrong() { try { localStorage.setItem('pinyin-wrong', JSON.stringify(wrongWords)); } catch(e) {} updateWrongCount(); }
 function updateWrongCount() {
   const badge = document.getElementById('wrongCount');
   if (badge) badge.textContent = `(${wrongWords.length})`;
@@ -781,15 +782,18 @@ function initRound() {
   ymCorrect = false;
   correct = 0; total = 0;
   buildDots();
-  // 错题本为空时显示提示
+  // 错题本为空时显示提示，但保留输入框让用户可以退出
   if (mode === 'wrong' && wrongWords.length === 0) {
     cardEl.style.display = 'flex';
     wordEl.textContent = '暂无错题';
     pyHintEl.innerHTML = '<span style="color:#555;font-size:14px">做错的题会自动收录到这里</span>';
-    inpEl.style.display = 'none';
+    inpEl.style.display = '';
+    inpEl.readOnly = true;
+    inpEl.placeholder = '切到其他模式开始练习';
     return;
   }
   inpEl.style.display = '';
+  inpEl.readOnly = false;
   showWord();
 }
 
@@ -877,16 +881,18 @@ function updatePhaseBadges() {
   if (smPhase === 'done') {
     badgeSmEl.classList.add('done-sm');
     badgeSmEl.textContent = '✓ 声母';
+    badgeYmEl.classList.add('done-ym');
+    badgeYmEl.textContent = '✓ 韵母';
+  } else if (smPhase === 'ym') {
+    badgeSmEl.classList.add('done-sm');
+    badgeSmEl.textContent = '✓ 声母';
     badgeYmEl.classList.add('active-ym');
     badgeYmEl.textContent = '韵母？';
-  } else if (smPhase === 'ym') {
+  } else {
     badgeSmEl.classList.add('active-sm');
     badgeSmEl.textContent = '声母？';
     badgeYmEl.classList.add('active-ym');
     badgeYmEl.textContent = '韵母？';
-  } else if (smPhase === 'done') {
-    badgeSmEl.classList.add('done-sm');
-    badgeYmEl.classList.add('done-ym');
   }
 }
 
@@ -923,33 +929,36 @@ function resetAll() {
 }
 
 function updateStats() {
+  const total = mode === 'ym' ? ymPool.length : roundWords.length;
   document.getElementById('correct').textContent = correct;
-  document.getElementById('total').textContent = roundWords.length;
-  document.getElementById('rate').textContent = roundWords.length > 0 ? Math.round(correct / roundWords.length * 100) + '%' : '0%';
+  document.getElementById('total').textContent = total;
+  document.getElementById('rate').textContent = total > 0 ? Math.round(correct / total * 100) + '%' : '0%';
 }
 
 // ======== 输入处理 ========
+let inputTimer = null;
 inpEl.addEventListener('input', () => {
   if (!word || doneAnswered) return;
   playKey();
 
-  if (mode === 'sm') {
-    handleSMInput(); return;
-  }
+  clearTimeout(inputTimer);
+  inputTimer = setTimeout(() => {
+    if (mode === 'sm') { handleSMInput(); return; }
 
-  const input = inpEl.value.trim().toLowerCase().replace(/\s+/g, '');
-  const target = mode === 'dictation' ? word.w.toLowerCase() : word.p.toLowerCase().replace(/\s+/g, '');
+    const input = inpEl.value.trim().toLowerCase().replace(/\s+/g, '');
+    const target = mode === 'dictation' ? word.w.toLowerCase() : word.p.toLowerCase().replace(/\s+/g, '');
 
-  if (!input) { inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb'; return; }
+    if (!input) { inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb'; return; }
 
-  if (input === target) {
-    inpEl.className = 'ok'; fbEl.textContent = '✓ 正确！'; fbEl.className = 'fb ok'; playCorrect();
-    doneAnswered = true; sessionCorrect[wordIndex] = true; correct++; updateStats();
-  } else if (target.startsWith(input) || input.startsWith(target)) {
-    inpEl.className = ''; fbEl.textContent = '差一点'; fbEl.className = 'fb info';
-  } else {
-    inpEl.className = 'err'; fbEl.textContent = '✗ 不对'; fbEl.className = 'fb err'; playWrong();
-  }
+    if (input === target) {
+      inpEl.className = 'ok'; fbEl.textContent = '✓ 正确！'; fbEl.className = 'fb ok'; playCorrect();
+      doneAnswered = true; sessionCorrect[wordIndex] = true; correct++; updateStats();
+    } else if (target.startsWith(input) || input.startsWith(target)) {
+      inpEl.className = ''; fbEl.textContent = '差一点'; fbEl.className = 'fb info';
+    } else {
+      inpEl.className = 'err'; fbEl.textContent = '✗ 不对'; fbEl.className = 'fb err'; playWrong();
+    }
+  }, 80);
 });
 
 inpEl.addEventListener('keydown', (e) => {
@@ -964,6 +973,7 @@ inpEl.addEventListener('keydown', (e) => {
     }
     if (doneAnswered) { goNext(); return; }
     // 强制提交
+    clearTimeout(inputTimer);
     const input = inpEl.value.trim().toLowerCase().replace(/\s+/g, '');
     const target = mode === 'dictation' ? word.w.toLowerCase() : word.p.toLowerCase().replace(/\s+/g, '');
     doneAnswered = true; sessionCorrect[wordIndex] = false; total++;
@@ -1057,15 +1067,17 @@ function commitSM() {
   const norm = input.replace(/[0O]/g, '0').replace(/ü/g, 'v');
   smCorrect = (norm === targetSM) || (word.sm === '' && (norm === '0' || norm === ''));
   sessionCorrect[wordIndex] = smCorrect;
-  correct += smCorrect ? 1 : 0;
   total++;
-  if (!smCorrect) addWrong(word.w, (word.sm === '' ? '∅' : word.sm) + word.ym);
+  if (!smCorrect) { addWrong(word.w, (word.sm === '' ? '∅' : word.sm) + word.ym); playWrong(); }
+  else { correct++; }
   smPhase = 'ym';
+  // 声母答对：doneAnswered=true 可以跳下一题；声母答错：doneAnswered=false 等韵母
+  doneAnswered = smCorrect;
   updatePhaseBadges();
   inpEl.value = '';
   inpEl.className = '';
-  fbEl.textContent = smCorrect ? '' : `声母是 "${word.sm || '无'}"`;
-  fbEl.className = smCorrect ? 'fb ok' : 'fb err'; if(!smCorrect) playWrong();
+  fbEl.textContent = smCorrect ? '✓ 声母正确！' : `✗ 声母是 "${word.sm || '无'}"`;
+  fbEl.className = smCorrect ? 'fb ok' : 'fb err';
   setTimeout(() => { inpEl.placeholder = '输入韵母（如 ai, ong）'; inpEl.focus(); }, 0);
 }
 
