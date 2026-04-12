@@ -285,11 +285,13 @@ const YM_BY_LEVEL = {
     <button class="ctrl-btn" data-mode="sm">声母韵母</button>
     <button class="ctrl-btn" data-mode="ym">韵母专项</button>
     <button class="ctrl-btn" data-mode="dictation">听写</button>
+    <button class="ctrl-btn" data-mode="wrong" id="wrongBtn">错题本 <span id="wrongCount" style="font-size:11px">(0)</span></button>
   </div>
   <div class="ctrl-group" id="lvlGroup">
     <button class="ctrl-btn active" data-lvl="1">简单</button>
     <button class="ctrl-btn" data-lvl="2">常用</button>
     <button class="ctrl-btn" data-lvl="3">成语</button>
+    <button class="ctrl-btn ghost" onclick="clearWrongWords()" id="clearWrongBtn" style="display:none">清空错题</button>
   </div>
 </div>
 
@@ -606,6 +608,30 @@ let doneAnswered = false;
 let smPhase = 'sm'; // 'sm' | 'ym' | 'done'
 let smCorrect = false, ymCorrect = false;
 
+// 错题本
+let wrongWords = JSON.parse(localStorage.getItem('pinyin-wrong') || '[]');
+function saveWrong() { localStorage.setItem('pinyin-wrong', JSON.stringify(wrongWords)); updateWrongCount(); }
+function updateWrongCount() {
+  const badge = document.getElementById('wrongCount');
+  if (badge) badge.textContent = `(${wrongWords.length})`;
+  const clearBtn = document.getElementById('clearWrongBtn');
+  if (clearBtn) clearBtn.style.display = wrongWords.length > 0 ? 'inline-block' : 'none';
+}
+function clearWrongWords() {
+  if (!confirm(`确定清空全部 ${wrongWords.length} 道错题？`)) return;
+  wrongWords = []; saveWrong();
+  if (mode === 'wrong') { resetAll(); }
+}
+function addWrong(w, p) {
+  // 去重
+  if (!wrongWords.find(x => x.w === w && x.p === p)) {
+    wrongWords.push({w, p, date: new Date().toLocaleDateString()});
+    saveWrong();
+  }
+}
+// 初始化 badge
+setTimeout(updateWrongCount, 0);
+
 const wordEl    = document.getElementById('word');
 const pyHintEl  = document.getElementById('pyHint');
 const inpEl     = document.getElementById('inp');
@@ -622,7 +648,10 @@ const badgeYmEl = document.getElementById('badgeYm');
 // ======== 初始化 ========
 function initRound() {
   let pool;
-  if (mode === 'sm') {
+  if (mode === 'wrong') {
+    pool = [...wrongWords];
+    // 错题本专用提示
+  } else if (mode === 'sm') {
     pool = [...(SM_WORDS[level] || SM_WORDS[1])];
   } else if (mode === 'ym') {
     ymPool = [...(YM_BY_LEVEL[level] || YM_BY_LEVEL[1])];
@@ -640,6 +669,15 @@ function initRound() {
   ymCorrect = false;
   correct = 0; total = 0;
   buildDots();
+  // 错题本为空时显示提示
+  if (mode === 'wrong' && wrongWords.length === 0) {
+    cardEl.style.display = 'flex';
+    wordEl.textContent = '暂无错题';
+    pyHintEl.innerHTML = '<span style="color:#555;font-size:14px">做错的题会自动收录到这里</span>';
+    inpEl.style.display = 'none';
+    return;
+  }
+  inpEl.style.display = '';
   showWord();
 }
 
@@ -700,6 +738,14 @@ function showWord() {
     phaseIndicatorEl.style.display = 'none';
     badgeYmEl.style.display = '';
     inpEl.placeholder = '输入汉字';
+  } else if (mode === 'wrong') {
+    wordEl.textContent = word.w;
+    const parts = word.p.split(' ').map(s => splitSM(s)).join(' &nbsp; ');
+    pyHintEl.innerHTML = `<span style="color:#f97316;font-size:12px">[错题复习]</span> ` + parts;
+    inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
+    phaseIndicatorEl.style.display = 'none';
+    badgeYmEl.style.display = '';
+    inpEl.placeholder = '输入拼音（不用声调）';
   } else {
     wordEl.textContent = word.w;
     const parts = word.p.split(' ').map(s => splitSM(s)).join(' &nbsp; ');
@@ -757,6 +803,7 @@ function resetAll() {
   cardEl.style.display = 'flex';
   inputWrapEl.style.display = 'block';
   phaseIndicatorEl.style.display = mode === 'sm' ? 'flex' : 'none';
+  lvlGroupEl.style.display = mode === 'wrong' ? 'none' : '';
   initRound();
 }
 
@@ -804,6 +851,7 @@ inpEl.addEventListener('keydown', (e) => {
     const input = inpEl.value.trim().toLowerCase().replace(/\s+/g, '');
     const target = mode === 'dictation' ? word.w.toLowerCase() : word.p.toLowerCase().replace(/\s+/g, '');
     doneAnswered = true; sessionCorrect[wordIndex] = false; total++;
+    if (mode !== 'wrong') addWrong(word.w, word.p); // 收录错题
     inpEl.className = 'err';
     const ans = mode === 'dictation' ? word.w : word.p;
     fbEl.textContent = '✗ 答案: ' + ans; fbEl.className = 'fb err'; playWrong();
@@ -893,6 +941,7 @@ function commitSM() {
   sessionCorrect[wordIndex] = smCorrect;
   correct += smCorrect ? 1 : 0;
   total++;
+  if (!smCorrect) addWrong(word.w, word.ym ? (word.sm||'') + word.ym : word.ym);
   smPhase = 'ym';
   updatePhaseBadges();
   inpEl.value = '';
@@ -941,9 +990,11 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     mode = newMode;
     inpEl.placeholder = newMode === 'dictation' ? '输入汉字'
                 : newMode === 'sm' ? '输入声母（如 b, zh）'
+                : newMode === 'wrong' ? '重新打一遍！'
                 : '输入拼音（不用声调）';
     phaseIndicatorEl.style.display = (newMode === 'sm' || newMode === 'ym') ? 'flex' : 'none';
     badgeYmEl.style.display = newMode === 'ym' ? 'none' : '';
+    lvlGroupEl.style.display = newMode === 'wrong' ? 'none' : '';
     resetAll();
   });
 });
