@@ -174,7 +174,7 @@
 </head>
 <body>
 
-<h1>拼音打字练习</h1>
+<h1>拼音打字练习 <span style="font-size:12px;color:#666;font-weight:normal">v1.0.6</span></h1>
 <p class="tagline">参考声母韵母表 · 打字母不用声调</p>
 
 <!-- 声母韵母参考表 -->
@@ -282,13 +282,13 @@
 </div>
 
 <!-- 输入 -->
-<div class="input-wrap" id="inputWrap">
+<div class="input-wrap" id="inputWrap" onclick="" style="cursor:pointer">
   <!-- 声母韵母模式的阶段指示 -->
   <div class="phase-indicator" id="phaseIndicator" style="display:none">
     <div class="phase-badge" id="badgeSm">声母</div>
     <div class="phase-badge" id="badgeYm">韵母</div>
   </div>
-  <input type="text" id="inp" placeholder="输入拼音（不用声调）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="min-height:50px;pointer-events:auto;-webkit-user-select:text">
+  <input type="text" id="inp" placeholder="输入拼音（不用声调）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="min-height:50px;-webkit-user-select:text">
   <div class="fb" id="fb"></div>
 </div>
 
@@ -1137,6 +1137,17 @@ dotsEl.addEventListener('click', e => {
     smPhase = 'sm'; smCorrect = false; ymCorrect = false; doneAnswered = false;
     showWord();
   }
+});
+
+// iOS WKWebView 修复：点击输入区时聚焦并唤起键盘
+document.getElementById('inputWrap').addEventListener('click', function() {
+  inpEl.focus();
+});
+document.getElementById('inputWrap').addEventListener('touchend', function(e) {
+  e.preventDefault();
+  inpEl.focus();
+  // 延迟触发输入
+  setTimeout(function() { inpEl.click(); }, 100);
 });
 
 // 启动
