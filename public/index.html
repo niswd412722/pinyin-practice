@@ -379,6 +379,25 @@ function playKey() {
   // 轻柔按键音
   playTone(800, 0.05, 'sine', 0.08);
 }
+function playTick() {
+  // 嗒嗒声（模式切换）
+  playTone(600, 0.04, 'square', 0.06);
+  setTimeout(() => playTone(900, 0.04, 'square', 0.06), 50);
+}
+function playComplete() {
+  // 完成音效：两声叮
+  try {
+    const ctx = getAudioCtx();
+    [784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.2, 'sine', 0.18), i * 150));
+  } catch(e) {}
+}
+function playLevelUp() {
+  // 升级/通过音效
+  try {
+    const ctx = getAudioCtx();
+    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.12, 'sine', 0.15), i * 100));
+  } catch(e) {}
+}
 
 // ======== 声母韵母词典 ========
 // 每个字: { w: 汉字, sm: 声母(空为∅), ym: 韵母 }
@@ -796,6 +815,8 @@ function showResult() {
   const resLen = mode === 'ym' ? ymPool.length : roundWords.length;
   document.getElementById('rRate').textContent = resLen > 0 ? Math.round(correct / resLen * 100) + '%' : '0%';
   document.getElementById('rTotal').textContent = resLen;
+  if (correct === resLen && resLen > 0) playLevelUp();
+  else if (resLen > 0) playComplete();
 }
 
 function resetAll() {
@@ -815,6 +836,7 @@ function updateStats() {
 
 // ======== 输入处理 ========
 inpEl.addEventListener('input', () => {
+  playKey();
   if (!word || doneAnswered) return;
 
   if (mode === 'sm') {
@@ -995,6 +1017,7 @@ document.querySelectorAll('[data-mode]').forEach(btn => {
     phaseIndicatorEl.style.display = (newMode === 'sm' || newMode === 'ym') ? 'flex' : 'none';
     badgeYmEl.style.display = newMode === 'ym' ? 'none' : '';
     lvlGroupEl.style.display = newMode === 'wrong' ? 'none' : '';
+    playTick();
     resetAll();
   });
 });
@@ -1004,6 +1027,7 @@ document.querySelectorAll('[data-lvl]').forEach(btn => {
     document.querySelectorAll('[data-lvl]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     level = parseInt(btn.dataset.lvl);
+    playTick();
     resetAll();
   });
 });
