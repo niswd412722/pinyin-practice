@@ -1,38 +1,62 @@
-# 拼音打字练习 - iOS 项目
+# 拼音打字练习
 
-## 如何打包签名
+练习拼音输入的打字工具 iOS App。
 
-### 方式一：在线签名平台（推荐）
-使用以下平台之一上传本项目 zip 包：
-- 蒲公英：https://pgyer.com
-- 香蕉云签名：https://www.pgyer.com/doc/香蕉云签名
-- Fir.im：https://fir.im
+## 功能模式
 
-**上传时选择 iOS 项目**，平台会在云端 Mac 完成编译和签名。
+| 模式 | 说明 |
+|------|------|
+| **看字打字** | 显示汉字，输入对应拼音 |
+| **声母韵母** | 先打声母，再打韵母，分两步 |
+| **韵母专项** | 专门练习韵母（ü/ong/iang 等易混淆韵母） |
+| **听写** | 显示拼音，输入汉字 |
+| **错题本** | 收录答错的题，反复练习 |
 
-### 方式二：使用 Xcode（需要 Mac）
-1. 解压 zip
-2. 用 Xcode 打开 `ios/App/App.xcodeproj`
-3. 选择签名团队（Sign with your team）
-4. Product → Archive → Distribute
+## 难度
 
-### 在线构建步骤
-1. 将 zip 上传到 GitHub（私有仓库）
-2. 在在线签名平台关联 GitHub 仓库
-3. 平台自动拉取并编译
+- **简单**：单音节词（妈妈、学习）
+- **常用**：双音节常用词（北京、天气）
+- **成语**：四字成语
 
-## 项目信息
-- App ID: com.pinyin.practice
-- App 名称: 拼音打字练习
-- 最低 iOS 版本: 13.0
+## 使用方法
+
+1. 打开 App 直接开始
+2. 顶部选择模式和难度
+3. 输入框输入答案，回车或按"下一题"
+4. 不用输入声调
+
+## 安装
+
+### 方式一：自己编译
+```bash
+npm install
+npx cap sync ios
+# 用 Xcode 打开 ios/App/App.xcodeproj
+# Product → Archive → Distribute
+```
+
+### 方式二：用在线签名平台
+1. 下载最新 zip 包
+2. 上传到 [蒲公英](https://pgyer.com) 或 [香蕉云签名](https://www.pgyer.com/doc/香蕉云签名)
+3. 下载签名后的 IPA 安装
+
+### 方式三：GitHub Actions 自动构建
+推送代码后自动构建 IPA，下载 artifact。
 
 ## 技术栈
-- 前端: Capacitor + 原生 HTML/CSS/JS
-- iOS 容器: Capacitor iOS
 
-## 界面特性
-- 看字打字 / 听写 / 速度模式
-- 简单 / 常用 / 成语 三个难度
-- 声母韵母参考表
-- 实时反馈
-- 手机适配
+- 前端: HTML + CSS + JS（无框架依赖）
+- iOS 容器: Capacitor
+- 触控反馈: Web Audio API（内嵌，无需外部音频文件）
+- 振动反馈: Capacitor Haptics 插件
+
+## 项目结构
+
+```
+pinyin-practice/
+├── public/index.html       # 完整应用代码（HTML/CSS/JS）
+├── ios/App/               # iOS 原生项目
+│   └── App/public/index.html  # 同步后的 web assets
+├── server.js              # 本地调试服务器
+└── SPEC.md                # 设计规格
+```
