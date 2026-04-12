@@ -800,10 +800,11 @@ function buildDots() {
 }
 
 function showWord() {
-  if (wordIndex >= roundWords.length) {
+  const poolLen = mode === 'ym' ? ymPool.length : roundWords.length;
+  if (wordIndex >= poolLen) {
     showResult(); return;
   }
-  word = roundWords[wordIndex];
+  word = mode === 'ym' ? ymPool[wordIndex] : roundWords[wordIndex];
   doneAnswered = false;
 
   // 更新进度圈
