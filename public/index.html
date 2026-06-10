@@ -2,1169 +2,842 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>拼音打字练习</title>
-
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: #1a1a2e;
     color: #eee;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 10px 30px;
+    overflow-x: hidden;
+    padding: 20px 16px 80px;
   }
-  h1 { font-size: 20px; color: #e94560; margin-bottom: 4px; text-align: center; }
-  .tagline { font-size: 12px; color: #555; text-align: center; margin-bottom: 16px; }
 
-  /* 声母韵母表 */
-  .ref-table {
-    width: 100%; max-width: 740px;
-    background: #16213e; border-radius: 12px;
-    padding: 16px 14px; margin-bottom: 16px; overflow-x: auto;
-  }
-  .ref-section { margin-bottom: 14px; }
-  .ref-section:last-child { margin-bottom: 0; }
-  .ref-title { font-size: 11px; color: #666; margin-bottom: 6px; padding-left: 2px; }
-  .ref-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-  .ref-item { display: flex; flex-direction: column; align-items: center; min-width: 40px; }
-  .ref-letter { font-size: 28px; font-weight: bold; color: #e94560; line-height: 1; font-family: monospace; }
-  .ref-hint { font-size: 16px; color: #555; margin-top: 2px; text-align: center; line-height: 1.2; }
+  /* ── Header ── */
+  .header { text-align: center; margin-bottom: 20px; }
+  .header h1 { font-size: 22px; color: #e94560; }
+  .header .subtitle { font-size: 13px; color: #888; margin-top: 2px; }
 
-  /* 模式/难度切换 */
-  .controls-row {
-    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-    margin-bottom: 14px; width: 100%; max-width: 600px;
+  /* ── Mode Select ── */
+  .mode-bar {
+    display: flex; gap: 6px; margin-bottom: 12px;
+    justify-content: center; flex-wrap: wrap;
   }
-  .ctrl-group {
-    display: flex; gap: 4px; background: #16213e;
-    border-radius: 8px; padding: 4px;
+  .mode-btn {
+    padding: 6px 14px; border: 1px solid #444; border-radius: 20px;
+    background: transparent; color: #888; font-size: 12px;
+    cursor: pointer; transition: all 0.2s;
   }
-  .ctrl-btn {
-    padding: 5px 12px; border: none; border-radius: 6px;
-    font-size: 12px; cursor: pointer; background: transparent;
-    color: #777; transition: all 0.15s; white-space: nowrap;
-  }
-  .ctrl-btn.active { background: #e94560; color: #fff; }
-  .ctrl-btn:hover:not(.active) { color: #bbb; }
+  .mode-btn.active { border-color: #e94560; color: #e94560; background: rgba(233,69,96,0.1); }
 
-  /* 统计 */
+  /* ── Difficulty Select ── */
+  .level-bar {
+    display: flex; gap: 8px; margin-bottom: 16px;
+    justify-content: center; flex-wrap: wrap;
+  }
+  .lvl-btn {
+    padding: 5px 14px; border: 1px solid #333; border-radius: 16px;
+    background: transparent; color: #666; font-size: 12px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .lvl-btn.active { border-color: #e94560; color: #e94560; background: rgba(233,69,96,0.1); }
+
+  /* ── Stats ── */
   .stats {
-    display: flex; justify-content: center; gap: 20px;
-    margin-bottom: 14px; width: 100%; max-width: 500px;
+    display: flex; gap: 24px; justify-content: center;
+    margin-bottom: 16px;
   }
-  .stat { text-align: center; flex: 1; }
-  .stat-val { font-size: 26px; font-weight: bold; color: #e94560; }
-  .stat-lbl { font-size: 10px; color: #555; margin-top: 1px; }
+  .stat { text-align: center; }
+  .stat-val { font-size: 22px; font-weight: bold; color: #e94560; }
+  .stat-lbl { font-size: 11px; color: #666; }
 
-  /* 题目卡片 */
+  /* ── Card ── */
   .card {
-    background: #16213e; border: 2px solid #2a2a4a;
-    border-radius: 14px; padding: 24px 30px; text-align: center;
-    margin-bottom: 12px; width: 100%; max-width: 500px;
-    min-height: 110px;
-    display: flex; flex-direction: column; justify-content: center;
+    background: #16213e; border-radius: 16px; padding: 28px 24px;
+    text-align: center; margin-bottom: 20px;
+    border: 2px solid #e94560; max-width: 480px; margin-left: auto; margin-right: auto;
+    position: relative;
   }
-  .word {
-    font-size: 48px; font-weight: bold; letter-spacing: 6px;
-    color: #fff; font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  .card .char-display {
+    font-size: 52px; font-weight: bold; letter-spacing: 8px; color: #fff;
+    line-height: 1.3;
   }
-  .py-hint { font-size: 12px; color: #666; margin-top: 8px; font-family: monospace; letter-spacing: 1px; }
-  .py-hint .sm { color: #f97316; }
-  .py-hint .ym { color: #3b82f6; }
+  .card .char-display .char-tap {
+    display: inline-block; cursor: pointer; position: relative;
+    padding: 0 2px; transition: transform 0.15s;
+  }
+  .card .char-display .char-tap:active { transform: scale(0.85); }
+  .card .char-display .char-tap .char-pinyin {
+    display: block; font-size: 14px; color: #e94560;
+    font-weight: normal; letter-spacing: 0; margin-top: -4px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .card .char-display .char-tap .char-pinyin.show { opacity: 1; }
 
-  /* 进度圈 */
-  .progress-dots {
-    display: flex; justify-content: center; gap: 4px;
-    margin-bottom: 12px; flex-wrap: wrap; max-width: 500px;
+  .card .hint-row {
+    margin-top: 10px; height: 22px;
+    font-size: 14px; color: #e94560;
   }
-  .dot {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: #2a2a4a; font-size: 8px; line-height: 14px;
-    text-align: center; color: #555; transition: all 0.2s;
-  }
-  .dot.done { background: #4ade80; color: #000; }
-  .dot.current { background: #e94560; color: #fff; }
-  .dot.wrong { background: #f87171; color: #fff; }
-
-  /* 输入框 */
-  .input-wrap { width: 100%; max-width: 500px; }
-  #inp {
-    width: 100%; padding: 14px 18px; font-size: 24px;
-    text-align: center; border: 2px solid #5a5a8a; border-radius: 14px;
-    background: #1e2a4a; color: #fff; outline: none;
-    font-family: monospace; letter-spacing: 3px; transition: border-color 0.15s;
-    box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
-  }
-  #inp:focus { border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,0.3); }
-  #inp.ok { border-color: #4ade80; background: rgba(74,222,128,0.08); }
-  #inp.err { border-color: #f87171; background: rgba(248,113,113,0.08); }
-  .fb { height: 22px; margin-top: 8px; font-size: 14px; text-align: center; }
-  .fb.ok { color: #4ade80; }
-  .fb.err { color: #f87171; }
-  .fb.info { color: #888; }
-
-  /* 声母韵母模式专属 */
-  .phase-indicator {
-    display: flex; justify-content: center; gap: 16px; margin-bottom: 10px;
-  }
-  .phase-badge {
-    padding: 4px 14px; border-radius: 20px; font-size: 13px;
-    border: 2px solid #333; color: #555;
-  }
-  .phase-badge.active-sm {
-    border-color: #f97316; color: #f97316;
-    background: rgba(249,115,22,0.1);
-  }
-  .phase-badge.active-ym {
-    border-color: #3b82f6; color: #3b82f6;
-    background: rgba(59,130,246,0.1);
-  }
-  .phase-badge.done-sm {
-    border-color: #4ade80; color: #4ade80;
-    background: rgba(74,222,128,0.1);
-  }
-  .phase-badge.done-ym {
-    border-color: #4ade80; color: #4ade80;
-    background: rgba(74,222,128,0.1);
-  }
-
-  /* 底部按钮 */
-  .btns { margin-top: 14px; display: flex; gap: 8px; justify-content: center; }
-  button {
-    padding: 8px 18px; border: none; border-radius: 8px;
-    font-size: 13px; cursor: pointer; background: #e94560; color: #fff;
+  .card .speak-btn {
+    position: absolute; top: 12px; right: 16px;
+    background: none; border: none; color: #e94560;
+    font-size: 22px; cursor: pointer; opacity: 0.7;
     transition: opacity 0.2s;
   }
-  button:hover { opacity: 0.85; }
-  button.ghost { background: #2a2a4a; color: #888; }
-  .hint-row { margin-top: 12px; font-size: 11px; color: #444; text-align: center; }
+  .card .speak-btn:hover { opacity: 1; }
 
-  /* 结果 */
-  .result { display: none; text-align: center; padding: 10px; }
-  .result.show { display: block; }
-  .result h2 { font-size: 18px; color: #e94560; margin-bottom: 14px; }
-  .result-stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; }
-  .result-stats .stat-val { font-size: 32px; }
+  /* ── Input ── */
+  .input-area { max-width: 480px; margin: 0 auto 16px; text-align: center; }
+  #pinyin-input {
+    width: 100%; padding: 14px 20px; font-size: 22px; text-align: center;
+    border: 2px solid #333; border-radius: 12px;
+    background: #16213e; color: #fff;
+    outline: none; transition: border-color 0.3s, background 0.3s;
+  }
+  #pinyin-input:focus { border-color: #e94560; }
+  #pinyin-input.correct { border-color: #4ade80; background: rgba(74,222,128,0.08); }
+  #pinyin-input.wrong { border-color: #f87171; background: rgba(248,113,113,0.08); }
 
-  /* 手机适配 */
-  @media (max-width: 768px) {
-    body { padding: 12px 8px 20px; }
-    h1 { font-size: 24px; }
-    .tagline { font-size: 11px; margin-bottom: 12px; }
-    .ref-table { padding: 12px 10px; margin-bottom: 12px; }
-    .ref-section { margin-bottom: 8px; }
-    .ref-row { gap: 6px; }
-    .ref-item { min-width: 36px; }
-    .ref-letter { font-size: 20px; }
-    .ref-hint { font-size: 12px; }
-    .controls-row { flex-direction: column; gap: 8px; }
-    .ctrl-group { justify-content: center; }
-    .word { font-size: 56px; }
-    .py-hint { font-size: 18px; }
-    .card { padding: 24px 16px; }
-    #inp { padding: 16px 14px; font-size: 26px; border-radius: 14px; touch-action: manipulation; }
-    button { padding: 12px 24px; font-size: 15px; border-radius: 10px; min-height: 48px; }
-    .btns { gap: 10px; }
-    .hint-row { font-size: 10px; }
+  .feedback {
+    height: 28px; margin-top: 10px; font-size: 15px; text-align: center;
+  }
+  .feedback.ok { color: #4ade80; }
+  .feedback.fail { color: #f87171; }
+  .feedback.info { color: #fbbf24; }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex; gap: 10px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .controls button {
+    padding: 8px 20px; border: none; border-radius: 8px;
+    font-size: 13px; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-primary { background: #e94560; color: #fff; }
+  .btn-secondary { background: #333; color: #aaa; }
+  .controls button:active { opacity: 0.7; }
+
+  /* ── Options (quiz mode) ── */
+  .options {
+    display: flex; flex-direction: column; gap: 8px;
+    max-width: 480px; margin: 0 auto 16px;
+  }
+  .option-btn {
+    padding: 12px 20px; background: #16213e; border: 2px solid #333;
+    border-radius: 12px; color: #ddd; font-size: 16px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .option-btn:active { transform: scale(0.97); }
+  .option-btn.selected { border-color: #fbbf24; background: rgba(251,191,36,0.1); }
+  .option-btn.correct { border-color: #4ade80; background: rgba(74,222,128,0.15); }
+  .option-btn.wrong { border-color: #f87171; background: rgba(248,113,113,0.15); }
+
+  /* ── Dictation ── */
+  .dictation-hint {
+    font-size: 20px; color: #fbbf24; margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  /* ── Finals Practice ── */
+  .finals-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; margin-bottom: 12px;
+  }
+  .finals-tags span {
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 13px; background: rgba(233,69,96,0.15); color: #e94560;
+  }
+  .finals-tags span.done { background: rgba(74,222,128,0.15); color: #4ade80; }
+
+  /* ── Error Book ── */
+  .err-book-toggle {
+    text-align: center; margin-top: 8px;
+  }
+  .err-book-toggle button {
+    background: none; border: none; color: #666; font-size: 12px;
+    text-decoration: underline; cursor: pointer;
+  }
+  .err-book-panel {
+    display: none; max-width: 480px; margin: 12px auto 0;
+    background: #16213e; border-radius: 12px; padding: 16px;
+  }
+  .err-book-panel.open { display: block; }
+  .err-book-panel h3 { font-size: 14px; color: #e94560; margin-bottom: 8px; }
+  .err-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid #222; font-size: 14px;
+  }
+  .err-item .err-word { color: #fff; font-weight: bold; }
+  .err-item .err-pinyin { color: #e94560; font-size: 12px; }
+  .err-item button {
+    background: none; border: 1px solid #444; color: #666;
+    border-radius: 6px; padding: 2px 8px; font-size: 11px; cursor: pointer;
+  }
+
+  /* ── Toast / animation ── */
+  .toast {
+    position: fixed; top: 30%; left: 50%; transform: translate(-50%,-50%) scale(0);
+    font-size: 64px; pointer-events: none; transition: transform 0.3s;
+    z-index: 999;
+  }
+  .toast.show { transform: translate(-50%,-50%) scale(1); }
+
+  /* ── Responsive ── */
+  @media (min-width: 600px) {
+    body { padding: 40px 24px 80px; }
+    .card { padding: 40px 36px; }
+    .card .char-display { font-size: 64px; }
+    #pinyin-input { font-size: 26px; }
   }
 </style>
 </head>
 <body>
 
-<h1>拼音打字练习 <span style="font-size:12px;color:#666;font-weight:normal">v1.0.6</span></h1>
-<p class="tagline">参考声母韵母表 · 打字母不用声调</p>
-
-<!-- 声母韵母参考表 -->
-<div class="ref-table">
-  <div class="ref-section">
-    <div class="ref-title">声母</div>
-    <div class="ref-row">
-      <div class="ref-item"><div class="ref-letter">b</div><div class="ref-hint">玻</div></div>
-      <div class="ref-item"><div class="ref-letter">p</div><div class="ref-hint">坡</div></div>
-      <div class="ref-item"><div class="ref-letter">m</div><div class="ref-hint">摸</div></div>
-      <div class="ref-item"><div class="ref-letter">f</div><div class="ref-hint">佛</div></div>
-      <div class="ref-item"><div class="ref-letter">d</div><div class="ref-hint">得</div></div>
-      <div class="ref-item"><div class="ref-letter">t</div><div class="ref-hint">特</div></div>
-      <div class="ref-item"><div class="ref-letter">n</div><div class="ref-hint">讷</div></div>
-      <div class="ref-item"><div class="ref-letter">l</div><div class="ref-hint">勒</div></div>
-      <div class="ref-item"><div class="ref-letter">g</div><div class="ref-hint">哥</div></div>
-      <div class="ref-item"><div class="ref-letter">k</div><div class="ref-hint">科</div></div>
-      <div class="ref-item"><div class="ref-letter">h</div><div class="ref-hint">喝</div></div>
-      <div class="ref-item"><div class="ref-letter">j</div><div class="ref-hint">基</div></div>
-      <div class="ref-item"><div class="ref-letter">q</div><div class="ref-hint">欺</div></div>
-      <div class="ref-item"><div class="ref-letter">x</div><div class="ref-hint">希</div></div>
-      <div class="ref-item"><div class="ref-letter">zh</div><div class="ref-hint">知</div></div>
-      <div class="ref-item"><div class="ref-letter">ch</div><div class="ref-hint">蚩</div></div>
-      <div class="ref-item"><div class="ref-letter">sh</div><div class="ref-hint">诗</div></div>
-      <div class="ref-item"><div class="ref-letter">r</div><div class="ref-hint">日</div></div>
-      <div class="ref-item"><div class="ref-letter">z</div><div class="ref-hint">资</div></div>
-      <div class="ref-item"><div class="ref-letter">c</div><div class="ref-hint">雌</div></div>
-      <div class="ref-item"><div class="ref-letter">s</div><div class="ref-hint">思</div></div>
-      <div class="ref-item"><div class="ref-letter">y</div><div class="ref-hint">医</div></div>
-      <div class="ref-item"><div class="ref-letter">w</div><div class="ref-hint">巫</div></div>
-    </div>
-  </div>
-  <div class="ref-section">
-    <div class="ref-title">韵母</div>
-    <div class="ref-row">
-      <div class="ref-item"><div class="ref-letter">a</div><div class="ref-hint">啊</div></div>
-      <div class="ref-item"><div class="ref-letter">o</div><div class="ref-hint">喔</div></div>
-      <div class="ref-item"><div class="ref-letter">e</div><div class="ref-hint">鹅</div></div>
-      <div class="ref-item"><div class="ref-letter">i</div><div class="ref-hint">衣</div></div>
-      <div class="ref-item"><div class="ref-letter">u</div><div class="ref-hint">乌</div></div>
-      <div class="ref-item"><div class="ref-letter">ü</div><div class="ref-hint">鱼</div></div>
-      <div class="ref-item"><div class="ref-letter">ai</div><div class="ref-hint">爱</div></div>
-      <div class="ref-item"><div class="ref-letter">ei</div><div class="ref-hint">诶</div></div>
-      <div class="ref-item"><div class="ref-letter">ui</div><div class="ref-hint">威</div></div>
-      <div class="ref-item"><div class="ref-letter">ao</div><div class="ref-hint">奥</div></div>
-      <div class="ref-item"><div class="ref-letter">ou</div><div class="ref-hint">欧</div></div>
-      <div class="ref-item"><div class="ref-letter">iu</div><div class="ref-hint">优</div></div>
-      <div class="ref-item"><div class="ref-letter">ie</div><div class="ref-hint">叶</div></div>
-      <div class="ref-item"><div class="ref-letter">üe</div><div class="ref-hint">约</div></div>
-      <div class="ref-item"><div class="ref-letter">er</div><div class="ref-hint">二</div></div>
-      <div class="ref-item"><div class="ref-letter">an</div><div class="ref-hint">安</div></div>
-      <div class="ref-item"><div class="ref-letter">en</div><div class="ref-hint">恩</div></div>
-      <div class="ref-item"><div class="ref-letter">in</div><div class="ref-hint">音</div></div>
-      <div class="ref-item"><div class="ref-letter">un</div><div class="ref-hint">温</div></div>
-      <div class="ref-item"><div class="ref-letter">ün</div><div class="ref-hint">晕</div></div>
-      <div class="ref-item"><div class="ref-letter">ang</div><div class="ref-hint">昂</div></div>
-      <div class="ref-item"><div class="ref-letter">eng</div><div class="ref-hint">鞥</div></div>
-      <div class="ref-item"><div class="ref-letter">ing</div><div class="ref-hint">英</div></div>
-      <div class="ref-item"><div class="ref-letter">ong</div><div class="ref-hint">翁</div></div>
-    </div>
-  </div>
+<div class="header">
+  <h1>拼音打字练习</h1>
+  <p class="subtitle" id="mode-subtitle">看字打拼音，练出声调</p>
 </div>
 
-<!-- 模式切换 -->
-<div class="controls-row">
-  <div class="ctrl-group">
-    <button class="ctrl-btn active" data-mode="pinyin">看字打字</button>
-    <button class="ctrl-btn" data-mode="sm">声母韵母</button>
-    <button class="ctrl-btn" data-mode="ym">韵母专项</button>
-    <button class="ctrl-btn" data-mode="dictation">听写</button>
-    <button class="ctrl-btn" data-mode="wrong" id="wrongBtn">错题本 <span id="wrongCount" style="font-size:11px">(0)</span></button>
-  </div>
-  <div class="ctrl-group" id="lvlGroup">
-    <button class="ctrl-btn active" data-lvl="1">简单</button>
-    <button class="ctrl-btn" data-lvl="2">常用</button>
-    <button class="ctrl-btn" data-lvl="3">成语</button>
-    <button class="ctrl-btn ghost" onclick="clearWrongWords()" id="clearWrongBtn" style="display:none;">清空错题</button>
-  </div>
+<div class="mode-bar" id="mode-bar">
+  <button class="mode-btn active" data-mode="type">打字</button>
+  <button class="mode-btn" data-mode="initial">声母韵母</button>
+  <button class="mode-btn" data-mode="final">韵母专项</button>
+  <button class="mode-btn" data-mode="dictation">听写</button>
+  <button class="mode-btn" data-mode="quiz">选择题</button>
 </div>
 
-<!-- 统计 -->
-<div class="stats">
+<div class="level-bar" id="level-bar">
+  <button class="lvl-btn active" data-level="1">简单</button>
+  <button class="lvl-btn" data-level="2">常用</button>
+  <button class="lvl-btn" data-level="3">成语</button>
+  <button class="lvl-btn" data-level="4">HSK1</button>
+  <button class="lvl-btn" data-level="5">HSK2</button>
+</div>
+
+<div class="stats" id="stats">
   <div class="stat"><div class="stat-val" id="correct">0</div><div class="stat-lbl">正确</div></div>
   <div class="stat"><div class="stat-val" id="total">0</div><div class="stat-lbl">总数</div></div>
   <div class="stat"><div class="stat-val" id="rate">0%</div><div class="stat-lbl">正确率</div></div>
 </div>
 
-<!-- 进度圈 -->
-<div class="progress-dots" id="dots"></div>
-
-<!-- 题目卡片 -->
 <div class="card" id="card">
-  <div class="word" id="word">词语</div>
-  <div class="py-hint" id="pyHint"></div>
+  <button class="speak-btn" id="speak-btn" onclick="speakWord()">🔊</button>
+  <div class="char-display" id="word-display"></div>
+  <div class="hint-row" id="pinyin-hint"></div>
 </div>
 
-<!-- 结果 -->
-<div class="result" id="result">
-  <h2>完成！</h2>
-  <div class="result-stats">
-    <div class="stat"><div class="stat-val" id="rRate">0%</div><div class="stat-lbl">正确率</div></div>
-    <div class="stat"><div class="stat-val" id="rTotal">0</div><div class="stat-lbl">总题</div></div>
-  </div>
-  <button onclick="resetAll()">再来</button>
+<!-- Typing / Initial-Final / Finals mode input -->
+<div class="input-area" id="input-area">
+  <input type="text" id="pinyin-input" placeholder="输入拼音" autocomplete="off" autofocus>
+  <div class="feedback" id="feedback"></div>
 </div>
 
-<!-- 输入 -->
-<div class="input-wrap" id="inputWrap" onclick="" style="cursor:pointer">
-  <!-- 声母韵母模式的阶段指示 -->
-  <div class="phase-indicator" id="phaseIndicator" style="display:none">
-    <div class="phase-badge" id="badgeSm">声母</div>
-    <div class="phase-badge" id="badgeYm">韵母</div>
-  </div>
-  <input type="text" id="inp" placeholder="输入拼音（不用声调）" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="min-height:50px;-webkit-user-select:text">
-  <div class="fb" id="fb"></div>
+<!-- Quiz options (hidden by default) -->
+<div class="options" id="options-area" style="display:none"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="btn-primary" onclick="nextWord()">下一题</button>
+  <button class="btn-secondary" onclick="togglePinyin()">👁 看拼音</button>
+  <button class="btn-secondary" onclick="resetStats()">↺ 重置</button>
 </div>
 
-<div class="btns">
-  <button onclick="nextWord()">下一题</button>
-  <button class="ghost" onclick="resetAll()">重置</button>
+<!-- Finals progress tags -->
+<div class="finals-tags" id="finals-tags" style="display:none"></div>
+
+<!-- Error Book -->
+<div class="err-book-toggle">
+  <button onclick="toggleErrorBook()">📖 错题本 (<span id="err-count">0</span>)</button>
+</div>
+<div class="err-book-panel" id="err-book-panel">
+  <h3>错题本</h3>
+  <div id="err-list"></div>
 </div>
 
-<div class="hint-row">
-  回车=下一题 &nbsp;|&nbsp; 不用声调 🎯
-</div>
+<!-- Toast animation -->
+<div class="toast" id="toast"></div>
 
 <script>
-
-const YM_PRACTICE = [
-  {ym:'a',   label:'a — 啊型', chars:['啊','妈','把','卡','塔','拿','拉']},
-  {ym:'o',   label:'o — 哦型', chars:['哦','波','坡','摸','佛','博']},
-  {ym:'e',   label:'e — 鹅型', chars:['鹅','喝','歌','科','乐','得','特']},
-  {ym:'i',   label:'i — 衣型', chars:['衣','比','皮','米','低','你','梨','七','西']},
-  {ym:'u',   label:'u — 乌型', chars:['乌','不','普','木','读','图','路','古']},
-  {ym:'v',   label:'ü/v — 鱼型', chars:['鱼','绿','女','居','区','需']},
-  {ym:'ai',  label:'ai — 爱型', chars:['爱','白','买','代','菜','在','来']},
-  {ym:'ei',  label:'ei — 诶型', chars:['诶','北','配','美','累','给','黑']},
-  {ym:'ui',  label:'ui — 威型', chars:['威','归','回','推','随','对']},
-  {ym:'ao',  label:'ao — 奥型', chars:['奥','包','跑','道','套','老','高']},
-  {ym:'ou',  label:'ou — 欧型', chars:['欧','走','口','后','收','楼']},
-  {ym:'iu',  label:'iu — 优型', chars:['优','六','九','求','休','牛']},
-  {ym:'ie',  label:'ie — 叶型', chars:['叶','别','撇','灭','跌','铁','捏']},
-  {ym:'ve',  label:'üe/ve — 约型', chars:['月','约','掠','虐','学','却']},
-  {ym:'er',  label:'er — 二型', chars:['二','而','儿','耳']},
-  {ym:'an',  label:'an — 安型', chars:['安','班','盘','蛋','谈','南','山']},
-  {ym:'en',  label:'en — 恩型', chars:['恩','本','门','能','冷','根','真']},
-  {ym:'in',  label:'in — 音型', chars:['音','心','金','新','林','亲']},
-  {ym:'un',  label:'un — 温型', chars:['温','春','文','军','群','吨']},
-  {ym:'vn',  label:'ün/vn — 晕型', chars:['云','军','群','晕','训']},
-  {ym:'ang', label:'ang — 昂型', chars:['昂','帮','旁','当','糖','囊','长']},
-  {ym:'eng', label:'eng — 鞥型', chars:['鞥','崩','朋','等','疼','能']},
-  {ym:'ing', label:'ing — 英型', chars:['英','听','星','轻','青','名']},
-  {ym:'ong', label:'ong — 翁型', chars:['翁','东','通','龙','工','空','红']},
-  {ym:'ia',  label:'ia — 家型', chars:['家','下','恰','夏']},
-  {ym:'ua',  label:'ua — 挂型', chars:['挂','夸','花','抓','刷']},
-  {ym:'uo',  label:'uo — 国型', chars:['国','过','火','桌','说','窝']},
-  {ym:'ian', label:'ian — 面型', chars:['面','电','天','年','连','眼','前']},
-  {ym:'iang',label:'iang — 江型', chars:['江','想','香','强','响']},
-  {ym:'iong',label:'iong — 用型', chars:['用','胸','穷','熊','凶']},
-  {ym:'uan', label:'uan — 关型', chars:['关','环','全','宣','元','原']},
-  {ym:'uang',label:'uang — 光型', chars:['光','广','窗','双','狂','王']},
-];
-const YM_BY_LEVEL = {
-  1: YM_PRACTICE.filter(w => ['a','o','e','i','u','v','ai','ei','ao','ou','iu','ie','ve','an','en','ang','eng','ong'].includes(w.ym)),
-  2: YM_PRACTICE.filter(w => ['i','u','v','ui','iu','in','un','vn','ian','iang','uan','uang','iong','er'].includes(w.ym)),
-  3: YM_PRACTICE,
-};
-
-
-// ======== 声音引擎（Web Audio API，无需外部文件） ========
-let _audioCtx = null;
-function getAudioCtx() {
-  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return _audioCtx;
-}
-function playTone(freq, duration, type='sine', volume=0.25) {
-  try {
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.value = volume;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration);
-  } catch(e) {}
-}
-function playCorrect() {
-  hapticsNotification('success');
-  try {
-    const ctx = getAudioCtx();
-    [523, 659, 784].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'sine', 0.2), i * 80));
-  } catch(e) {}
-}
-function playWrong() {
-  hapticsNotification('error');
-  playTone(220, 0.3, 'sawtooth', 0.15);
-}
-function playKey() {
-  hapticsImpact('light');
-  playTone(800, 0.05, 'sine', 0.08);
-}
-function playTick() {
-  hapticsSelection();
-  playTone(600, 0.04, 'square', 0.06);
-  setTimeout(() => playTone(900, 0.04, 'square', 0.06), 50);
-}
-function playComplete() {
-  try {
-    const ctx = getAudioCtx();
-    [784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.2, 'sine', 0.18), i * 150));
-  } catch(e) {}
-}
-function playLevelUp() {
-  hapticsNotification('success');
-  try {
-    const ctx = getAudioCtx();
-    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.12, 'sine', 0.15), i * 100));
-  } catch(e) {}
-}
-// ======== Haptic 反馈（iOS） ========
-function hapticsImpact(style='light') {
-  try {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
-      window.Capacitor.Plugins.Haptics.impact({ style });
-    }
-  } catch(e) {}
-}
-function hapticsNotification(type='success') {
-  try {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
-      window.Capacitor.Plugins.Haptics.notification({ type });
-    }
-  } catch(e) {}
-}
-function hapticsSelection() {
-  try {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
-      window.Capacitor.Plugins.Haptics.selection();
-    }
-  } catch(e) {}
-}
-
-// ======== 声母韵母词典 ========
-// 每个字: { w: 汉字, sm: 声母(空为∅), ym: 韵母 }
-const SM_WORDS = {
-  1: [ // 简单声母韵母（韵母范围小）
-    // a
-    {w:'啊',sm:'',ym:'a'},{w:'阿',sm:'',ym:'a'},{w:'把',sm:'b',ym:'a'},
-    {w:'妈',sm:'m',ym:'a'},{w:'怕',sm:'p',ym:'a'},{w:'发',sm:'f',ym:'a'},
-    {w:'大',sm:'d',ym:'a'},{w:'他',sm:'t',ym:'a'},{w:'那',sm:'n',ym:'a'},
-    {w:'拉',sm:'l',ym:'a'},{w:'卡',sm:'k',ym:'a'},{w:'喝',sm:'h',ym:'a'},
-    {w:'扎',sm:'zh',ym:'a'},{w:'叉',sm:'ch',ym:'a'},{w:'沙',sm:'sh',ym:'a'},
-    {w:'家',sm:'j',ym:'a'},{w:'掐',sm:'q',ym:'a'},{w:'虾',sm:'x',ym:'a'},
-    // o
-    {w:'哦',sm:'',ym:'o'},{w:'波',sm:'b',ym:'o'},{w:'坡',sm:'p',ym:'o'},
-    {w:'摸',sm:'m',ym:'o'},{w:'佛',sm:'f',ym:'o'},
-    // e
-    {w:'鹅',sm:'',ym:'e'},{w:'喝',sm:'h',ym:'e'},{w:'歌',sm:'g',ym:'e'},
-    {w:'科',sm:'k',ym:'e'},{w:'乐',sm:'l',ym:'e'},
-    // i
-    {w:'衣',sm:'',ym:'i'},{w:'比',sm:'b',ym:'i'},{w:'皮',sm:'p',ym:'i'},
-    {w:'米',sm:'m',ym:'i'},{w:'低',sm:'d',ym:'i'},{w:'踢',sm:'t',ym:'i'},
-    {w:'你',sm:'n',ym:'i'},{w:'梨',sm:'l',ym:'i'},{w:'基',sm:'j',ym:'i'},
-    {w:'七',sm:'q',ym:'i'},{w:'西',sm:'x',ym:'i'},{w:'知',sm:'zh',ym:'i'},
-    {w:'吃',sm:'ch',ym:'i'},{w:'是',sm:'sh',ym:'i'},{w:'日',sm:'r',ym:'i'},
-    {w:'字',sm:'z',ym:'i'},{w:'此',sm:'c',ym:'i'},{w:'四',sm:'s',ym:'i'},
-    // u
-    {w:'乌',sm:'',ym:'u'},{w:'不',sm:'b',ym:'u'},{w:'普',sm:'p',ym:'u'},
-    {w:'木',sm:'m',ym:'u'},{w:'读',sm:'d',ym:'u'},{w:'图',sm:'t',ym:'u'},
-    {w:'路',sm:'l',ym:'u'},{w:'古',sm:'g',ym:'u'},{w:'苦',sm:'k',ym:'u'},
-    {w:'胡',sm:'h',ym:'u'},{w:'组',sm:'z',ym:'u'},{w:'粗',sm:'c',ym:'u'},
-    {w:'苏',sm:'s',ym:'u'},
-    // ü
-    {w:'鱼',sm:'',ym:'v'},{w:'绿',sm:'l',ym:'v'},{w:'女',sm:'n',ym:'v'},
-    {w:'居',sm:'j',ym:'v'},{w:'区',sm:'q',ym:'v'},{w:'需',sm:'x',ym:'v'},
-    // ai
-    {w:'爱',sm:'',ym:'ai'},{w:'白',sm:'b',ym:'ai'},{w:'拍',sm:'p',ym:'ai'},
-    {w:'买',sm:'m',ym:'ai'},{w:'代',sm:'d',ym:'ai'},{w:'太',sm:'t',ym:'ai'},
-    {w:'奶',sm:'n',ym:'ai'},{w:'来',sm:'l',ym:'ai'},{w:'给',sm:'g',ym:'ai'},
-    {w:'开',sm:'k',ym:'ai'},{w:'海',sm:'h',ym:'ai'},{w:'在',sm:'z',ym:'ai'},
-    {w:'菜',sm:'c',ym:'ai'},{w:'赛',sm:'s',ym:'ai'},
-    // ei
-    {w:'诶',sm:'',ym:'ei'},{w:'北',sm:'b',ym:'ei'},{w:'配',sm:'p',ym:'ei'},
-    {w:'每',sm:'m',ym:'ei'},{w:'得',sm:'d',ym:'ei'},{w:'累',sm:'l',ym:'ei'},
-    {w:'给',sm:'g',ym:'ei'},{w:'黑',sm:'h',ym:'ei'},{w:'谁',sm:'sh',ym:'ei'},
-    {w:'睡',sm:'sh',ym:'ei'},
-    // ao
-    {w:'奥',sm:'',ym:'ao'},{w:'包',sm:'b',ym:'ao'},{w:'跑',sm:'p',ym:'ao'},
-    {w:'猫',sm:'m',ym:'ao'},{w:'道',sm:'d',ym:'ao'},{w:'套',sm:'t',ym:'ao'},
-    {w:'脑',sm:'n',ym:'ao'},{w:'老',sm:'l',ym:'ao'},{w:'高',sm:'g',ym:'ao'},
-    {w:'靠',sm:'k',ym:'ao'},{w:'好',sm:'h',ym:'ao'},{w:'早',sm:'z',ym:'ao'},
-    {w:'草',sm:'c',ym:'ao'},{w:'扫',sm:'s',ym:'ao'},
-    // ou
-    {w:'欧',sm:'',ym:'ou'},{w:'走',sm:'z',ym:'ou'},{w:'口',sm:'k',ym:'ou'},
-    {w:'后',sm:'h',ym:'ou'},{w:'收',sm:'sh',ym:'ou'},
-    // an
-    {w:'安',sm:'',ym:'an'},{w:'班',sm:'b',ym:'an'},{w:'盘',sm:'p',ym:'an'},
-    {w:'满',sm:'m',ym:'an'},{w:'蛋',sm:'d',ym:'an'},{w:'谈',sm:'t',ym:'an'},
-    {w:'男',sm:'n',ym:'an'},{w:'蓝',sm:'l',ym:'an'},{w:'干',sm:'g',ym:'an'},
-    {w:'看',sm:'k',ym:'an'},{w:'汉',sm:'h',ym:'an'},{w:'站',sm:'zh',ym:'an'},
-    {w:'产',sm:'ch',ym:'an'},{w:'山',sm:'sh',ym:'an'},{w:'咱',sm:'z',ym:'an'},
-    {w:'三',sm:'s',ym:'an'},
-    // en
-    {w:'恩',sm:'',ym:'en'},{w:'本',sm:'b',ym:'en'},{w:'盆',sm:'p',ym:'en'},
-    {w:'门',sm:'m',ym:'en'},{w:'能',sm:'n',ym:'en'},{w:'冷',sm:'l',ym:'en'},
-    {w:'根',sm:'g',ym:'en'},{w:'肯',sm:'k',ym:'en'},{w:'很',sm:'h',ym:'en'},
-    {w:'真',sm:'zh',ym:'en'},{w:'陈',sm:'ch',ym:'en'},{w:'深',sm:'sh',ym:'en'},
-    {w:'人',sm:'r',ym:'en'},{w:'怎',sm:'z',ym:'en'},
-    // ang
-    {w:'昂',sm:'',ym:'ang'},{w:'帮',sm:'b',ym:'ang'},{w:'旁',sm:'p',ym:'ang'},
-    {w:'忙',sm:'m',ym:'ang'},{w:'当',sm:'d',ym:'ang'},{w:'糖',sm:'t',ym:'ang'},
-    {w:'囊',sm:'n',ym:'ang'},{w:'狼',sm:'l',ym:'ang'},{w:'刚',sm:'g',ym:'ang'},
-    {w:'抗',sm:'k',ym:'ang'},{w:'航',sm:'h',ym:'ang'},{w:'张',sm:'zh',ym:'ang'},
-    {w:'长',sm:'ch',ym:'ang'},{w:'商',sm:'sh',ym:'ang'},{w:'让',sm:'r',ym:'ang'},
-    // eng
-    {w:'鞥',sm:'',ym:'eng'},{w:'崩',sm:'b',ym:'eng'},{w:'朋',sm:'p',ym:'eng'},
-    {w:'蒙',sm:'m',ym:'eng'},{w:'等',sm:'d',ym:'eng'},{w:'疼',sm:'t',ym:'eng'},
-    {w:'能',sm:'n',ym:'eng'},{w:'冷',sm:'l',ym:'eng'},{w:'更',sm:'g',ym:'eng'},
-    {w:'坑',sm:'k',ym:'eng'},{w:'哼',sm:'h',ym:'eng'},
-    // ong
-    {w:'翁',sm:'',ym:'ong'},{w:'东',sm:'d',ym:'ong'},{w:'通',sm:'t',ym:'ong'},
-    {w:'龙',sm:'l',ym:'ong'},{w:'工',sm:'g',ym:'ong'},{w:'空',sm:'k',ym:'ong'},
-    {w:'红',sm:'h',ym:'ong'},{w:'中',sm:'zh',ym:'ong'},{w:'重',sm:'ch',ym:'ong'},
-    {w:'中',sm:'zh',ym:'ong'},
-  ],
-  2: [ // 常用：含复合韵母
-    // ia ie ua uo üe
-    {w:'家',sm:'j',ym:'ia'},{w:'恰',sm:'q',ym:'ia'},{w:'下',sm:'x',ym:'ia'},
-    {w:'夏',sm:'x',ym:'ia'},{w:'俩',sm:'l',ym:'ia'},
-    {w:'叶',sm:'',ym:'ie'},{w:'别',sm:'b',ym:'ie'},{w:'撇',sm:'p',ym:'ie'},
-    {w:'灭',sm:'m',ym:'ie'},{w:'跌',sm:'d',ym:'ie'},{w:'铁',sm:'t',ym:'ie'},
-    {w:'捏',sm:'n',ym:'ie'},{w:'列',sm:'l',ym:'ie'},{w:'接',sm:'j',ym:'ie'},
-    {w:'切',sm:'q',ym:'ie'},{w:'血',sm:'x',ym:'ie'},{w:'写',sm:'x',ym:'ie'},
-    {w:'谢',sm:'x',ym:'ie'},{w:'解',sm:'j',ym:'ie'},
-    {w:'挂',sm:'g',ym:'ua'},{w:'跨',sm:'k',ym:'ua'},{w:'花',sm:'h',ym:'ua'},
-    {w:'抓',sm:'zh',ym:'ua'},{w:'刷',sm:'sh',ym:'ua'},{w:'蛙',sm:'w',ym:'ua'},
-    {w:'娃',sm:'w',ym:'ia'},
-    {w:'国',sm:'g',ym:'uo'},{w:'阔',sm:'k',ym:'uo'},{w:'火',sm:'h',ym:'uo'},
-    {w:'桌',sm:'zh',ym:'uo'},{w:'说',sm:'sh',ym:'uo'},{w:'活',sm:'h',ym:'uo'},
-    {w:'获',sm:'h',ym:'uo'},{w:'脱',sm:'t',ym:'uo'},
-    {w:'月',sm:'',ym:'ve'},{w:'约',sm:'',ym:'ve'},{w:'掠',sm:'l',ym:'ve'},
-    {w:'虐',sm:'n',ym:'ve'},{w:'学',sm:'x',ym:'ve'},{w:'雪',sm:'x',ym:'ue'},
-    {w:'血',sm:'x',ym:'ue'},
-    // iao iou(iu) ian iang
-    {w:'秒',sm:'m',ym:'iao'},{w:'鸟',sm:'n',ym:'iao'},{w:'料',sm:'l',ym:'iao'},
-    {w:'交',sm:'j',ym:'iao'},{w:'巧',sm:'q',ym:'iao'},{w:'小',sm:'x',ym:'iao'},
-    {w:'笑',sm:'x',ym:'iao'},{w:'跳',sm:'t',ym:'iao'},{w:'票',sm:'p',ym:'iao'},
-    {w:'六',sm:'l',ym:'iu'},{w:'九',sm:'j',ym:'iu'},{w:'求',sm:'q',ym:'iu'},
-    {w:'休',sm:'x',ym:'iu'},{w:'牛',sm:'n',ym:'iu'},{w:'秀',sm:'x',ym:'iu'},
-    {w:'面',sm:'m',ym:'ian'},{w:'电',sm:'d',ym:'ian'},{w:'天',sm:'t',ym:'ian'},
-    {w:'年',sm:'n',ym:'ian'},{w:'连',sm:'l',ym:'ian'},{w:'眼',sm:'y',ym:'ian'},
-    {w:'间',sm:'j',ym:'ian'},{w:'前',sm:'q',ym:'ian'},{w:'先',sm:'x',ym:'ian'},
-    {w:'线',sm:'x',ym:'ian'},{w:'变',sm:'b',ym:'ian'},{w:'点',sm:'d',ym:'ian'},
-    {w:'江',sm:'j',ym:'iang'},{w:'想',sm:'x',ym:'iang'},{w:'香',sm:'x',ym:'iang'},
-    {w:'强',sm:'q',ym:'iang'},{w:'响',sm:'x',ym:'iang'},{w:'相',sm:'x',ym:'iang'},
-    // iong uan uang ün
-    {w:'用',sm:'',ym:'iong'},{w:'胸',sm:'x',ym:'iong'},{w:'穷',sm:'q',ym:'iong'},
-    {w:'凶',sm:'x',ym:'iong'},{w:'雄',sm:'x',ym:'iong'},
-    {w:'宣',sm:'x',ym:'uan'},{w:'全',sm:'q',ym:'uan'},{w:'元',sm:'',ym:'uan'},
-    {w:'关',sm:'g',ym:'uan'},{w:'宽',sm:'k',ym:'uan'},{w:'环',sm:'h',ym:'uan'},
-    {w:'换',sm:'h',ym:'uan'},{w:'短',sm:'d',ym:'uan'},{w:'算',sm:'s',ym:'uan'},
-    {w:'窗',sm:'ch',ym:'uang'},{w:'双',sm:'sh',ym:'uang'},{w:'光',sm:'g',ym:'uang'},
-    {w:'黄',sm:'h',ym:'uang'},{w:'王',sm:'w',ym:'ang'},
-    {w:'云',sm:'',ym:'vn'},{w:'军',sm:'j',ym:'un'},{w:'群',sm:'q',ym:'un'},
-    {w:'晕',sm:'',ym:'vn'},{w:'运',sm:'',ym:'un'},{w:'温',sm:'',ym:'en'},
-    // er / 特殊
-    {w:'二',sm:'',ym:'er'},{w:'而',sm:'',ym:'er'},{w:'耳',sm:'',ym:'er'},
-    {w:'鱼',sm:'',ym:'v'},{w:'绿',sm:'l',ym:'v'},{w:'女',sm:'n',ym:'v'},
-    {w:'居',sm:'j',ym:'v'},{w:'区',sm:'q',ym:'v'},{w:'需',sm:'x',ym:'v'},
-  ],
-  3: [ // 成语（选声母韵母结构清晰的）
-    // 含 zh/ch/sh/r 的
-    {w:'中',sm:'zh',ym:'ong'},{w:'国',sm:'g',ym:'uo'},
-    {w:'一',sm:'',ym:'i'},{w:'心',sm:'x',ym:'in'},
-    {w:'一',sm:'',ym:'i'},{w:'意',sm:'',ym:'i'},
-    {w:'三',sm:'s',ym:'an'},{w:'心',sm:'x',ym:'in'},
-    {w:'二',sm:'',ym:'er'},{w:'意',sm:'',ym:'i'},
-    {w:'五',sm:'w',ym:'u'},{w:'颜',sm:'y',ym:'an'},
-    {w:'六',sm:'l',ym:'iu'},{w:'色',sm:'s',ym:'e'},
-    {w:'七',sm:'q',ym:'i'},{w:'上',sm:'sh',ym:'ang'},
-    {w:'八',sm:'b',ym:'a'},{w:'下',sm:'x',ym:'ia'},
-    {w:'百',sm:'b',ym:'ai'},{w:'花',sm:'h',ym:'ua'},
-    {w:'齐',sm:'q',ym:'i'},{w:'放',sm:'f',ym:'ang'},
-    {w:'千',sm:'q',ym:'ian'},{w:'言',sm:'y',ym:'an'},
-    {w:'万',sm:'w',ym:'an'},{w:'语',sm:'y',ym:'u'},
-    {w:'东',sm:'d',ym:'ong'},{w:'张',sm:'zh',ym:'ang'},
-    {w:'西',sm:'x',ym:'i'},{w:'望',sm:'w',ym:'ang'},
-    {w:'南',sm:'n',ym:'an'},{w:'来',sm:'l',ym:'ai'},
-    {w:'北',sm:'b',ym:'ei'},{w:'往',sm:'w',ym:'ang'},
-    {w:'前',sm:'q',ym:'ian'},{w:'因',sm:'',ym:'in'},
-    {w:'后',sm:'h',ym:'ou'},{w:'果',sm:'g',ym:'uo'},
-    {w:'左',sm:'z',ym:'uo'},{w:'邻',sm:'l',ym:'in'},
-    {w:'右',sm:'y',ym:'ou'},{w:'舍',sm:'sh',ym:'e'},
-    {w:'大',sm:'d',ym:'a'},{w:'同',sm:'t',ym:'ong'},
-    {w:'小',sm:'x',ym:'iao'},{w:'异',sm:'',ym:'i'},
-    {w:'眼',sm:'y',ym:'an'},{w:'高',sm:'g',ym:'ao'},
-    {w:'手',sm:'sh',ym:'ou'},{w:'低',sm:'d',ym:'i'},
-    {w:'口',sm:'k',ym:'ou'},{w:'是',sm:'sh',ym:'i'},
-    {w:'心',sm:'x',ym:'in'},{w:'非',sm:'f',ym:'ei'},
-    // 更多成语单字
-    {w:'无',sm:'',ym:'u'},{w:'影',sm:'y',ym:'ing'},{w:'踪',sm:'z',ym:'ong'},
-    {w:'自',sm:'z',ym:'i'},{w:'由',sm:'y',ym:'ou'},{w:'在',sm:'z',ym:'ai'},
-    {w:'探',sm:'t',ym:'an'},{w:'头',sm:'t',ym:'ou'},{w:'脑',sm:'n',ym:'ao'},
-    {w:'争',sm:'zh',ym:'eng'},{w:'先',sm:'x',ym:'ian'},{w:'恐',sm:'k',ym:'ong'},{w:'后',sm:'h',ym:'ou'},
-    {w:'思',sm:'s',ym:'i'},{w:'想',sm:'x',ym:'iang'},
-    {w:'开',sm:'k',ym:'ai'},{w:'心',sm:'x',ym:'in'},
-    {w:'多',sm:'d',ym:'uo'},{w:'才',sm:'c',ym:'ai'},{w:'艺',sm:'y',ym:'i'},
-    {w:'各',sm:'g',ym:'e'},{w:'式',sm:'sh',ym:'i'},{w:'样',sm:'y',ym:'ang'},
-    {w:'一',sm:'',ym:'i'},{w:'模',sm:'m',ym:'o'},{w:'一',sm:'',ym:'i'},{w:'样',sm:'y',ym:'ang'},
-    {w:'言',sm:'y',ym:'an'},{w:'语',sm:'y',ym:'u'},
-    {w:'大',sm:'d',ym:'a'},{w:'吉',sm:'j',ym:'i'},{w:'大',sm:'d',ym:'a'},{w:'利',sm:'l',ym:'i'},
-    {w:'起',sm:'q',ym:'i'},{w:'落',sm:'l',ym:'uo'},
-    {w:'马',sm:'m',ym:'a'},{w:'虎',sm:'h',ym:'u'},
-  ]
-};
-
-// ======== 原有词库（看字打字+听写） ========
+// ════════════════════════════════════════════════════════════════
+//  WORD DATA
+// ════════════════════════════════════════════════════════════════
 const WORDS = {
   1: [
-    {w:'妈妈',p:'ma ma'},{w:'爸爸',p:'ba ba'},{w:'爷爷',p:'ye ye'},
-    {w:'奶奶',p:'nai nai'},{w:'哥哥',p:'ge ge'},{w:'姐姐',p:'jie jie'},
-    {w:'弟弟',p:'di di'},{w:'妹妹',p:'mei mei'},{w:'叔叔',p:'shu shu'},
-    {w:'阿姨',p:'a yi'},{w:'舅舅',p:'jiu jiu'},{w:'中国',p:'zhong guo'},
-    {w:'朋友',p:'peng you'},{w:'工作',p:'gong zuo'},{w:'学习',p:'xue xi'},
-    {w:'快乐',p:'kuai le'},{w:'喜欢',p:'xi huan'},{w:'什么',p:'shen me'},
-    {w:'知道',p:'zhi dao'},{w:'可以',p:'ke yi'},{w:'老师',p:'lao shi'},
-    {w:'学生',p:'xue sheng'},{w:'电脑',p:'dian nao'},{w:'手机',p:'shou ji'},
-    {w:'天气',p:'tian qi'},{w:'吃饭',p:'chi fan'},{w:'睡觉',p:'shui jiao'},
-    {w:'看书',p:'kan shu'},{w:'说话',p:'shuo hua'},{w:'走路',p:'zou lu'},
-    {w:'跑步',p:'pao bu'},{w:'开门',p:'kai men'},{w:'关门',p:'guan men'},
-    {w:'房子',p:'fang zi'},{w:'衣服',p:'yi fu'},{w:'米饭',p:'mi fan'},
-    {w:'水果',p:'shui guo'},{w:'蔬菜',p:'shu cai'},{w:'红色',p:'hong se'},
-    {w:'蓝色',p:'lan se'},{w:'白色',p:'bai se'},{w:'绿色',p:'lv se'},
-    {w:'黄色',p:'huang se'},{w:'黑色',p:'hei se'},{w:'今天',p:'jin tian'},
-    {w:'明天',p:'ming tian'},{w:'早上',p:'zao shang'},{w:'晚上',p:'wan shang'},
-    {w:'医院',p:'yi yuan'},{w:'学校',p:'xue xiao'},{w:'银行',p:'yin hang'},
-    {w:'眼睛',p:'yan jing'},{w:'耳朵',p:'er duo'},{w:'鼻子',p:'bi zi'},
-    {w:'头',p:'tou'},{w:'手',p:'shou'},{w:'脚',p:'jiao'},{w:'脸',p:'lian'},
-    {w:'头发',p:'tou fa'},{w:'脖子',p:'bo zi'},{w:'肩膀',p:'jian bang'},
-    {w:'胳膊',p:'ge bo'},{w:'面包',p:'mian bao'},{w:'牛奶',p:'niu nai'},
-    {w:'鸡蛋',p:'ji dan'},{w:'喝水',p:'he shui'},{w:'开车',p:'kai che'},
-    {w:'停车',p:'ting che'},{w:'上山',p:'shang shan'},{w:'下山',p:'xia shan'},
-    {w:'下雨',p:'xia yu'},{w:'下雪',p:'xia xue'},{w:'太阳',p:'tai yang'},
-    {w:'月亮',p:'yue liang'},{w:'星星',p:'xing xing'},{w:'火车',p:'huo che'},
-    {w:'飞机',p:'fei ji'},{w:'地铁',p:'di tie'},{w:'公交',p:'gong jiao'},
-    {w:'出租',p:'chu zu'},{w:'钥匙',p:'yao shi'},{w:'钱包',p:'qian bao'},
-    {w:'眼镜',p:'yan jing'},{w:'帽子',p:'mao zi'},{w:'鞋子',p:'xie zi'},
-    {w:'桌子',p:'zhuo zi'},{w:'椅子',p:'yi zi'},{w:'床',p:'chuang'},
-    {w:'窗户',p:'chuang hu'},{w:'镜子',p:'jing zi'},{w:'毛巾',p:'mao jin'},
-    {w:'牙刷',p:'ya shua'},{w:'名字',p:'ming zi'},{w:'电话',p:'dian hua'},
-    {w:'生日',p:'sheng ri'},{w:'节日',p:'jie ri'},{w:'谢谢',p:'xie xie'},
-    {w:'问题',p:'wen ti'},{w:'超市',p:'chao shi'},{w:'商店',p:'shang dian'},
-    {w:'我们',p:'wo men'},{w:'你们',p:'ni men'},{w:'他们',p:'ta men'},
-    {w:'一年',p:'yi nian'},{w:'一月',p:'yi yue'},{w:'一天',p:'yi tian'},
+    { w: '妈妈', p: 'mā ma' }, { w: '爸爸', p: 'bà ba' }, { w: '学习', p: 'xué xí' },
+    { w: '中国', p: 'zhōng guó' }, { w: '朋友', p: 'péng you' }, { w: '工作', p: 'gōng zuò' },
+    { w: '时间', p: 'shí jiān' }, { w: '快乐', p: 'kuài lè' }, { w: '大家', p: 'dà jiā' },
+    { w: '什么', p: 'shén me' }, { w: '知道', p: 'zhī dào' }, { w: '可以', p: 'kě yǐ' },
+    { w: '喜欢', p: 'xǐ huān' }, { w: '问题', p: 'wèn tí' }, { w: '谢谢', p: 'xiè xiè' },
+    { w: '老师', p: 'lǎo shī' }, { w: '学生', p: 'xué shēng' }, { w: '电脑', p: 'diàn nǎo' },
+    { w: '手机', p: 'shǒu jī' }, { w: '天气', p: 'tiān qì' }, { w: '吃饭', p: 'chī fàn' },
+    { w: '睡觉', p: 'shuì jiào' }, { w: '看书', p: 'kàn shū' }, { w: '写字', p: 'xiě zì' },
+    { w: '说话', p: 'shuō huà' }, { w: '走路', p: 'zǒu lù' }, { w: '跑步', p: 'pǎo bù' },
+    { w: '喝水', p: 'hē shuǐ' }, { w: '开门', p: 'kāi mén' }, { w: '关门', p: 'guān mén' },
+    { w: '你好', p: 'nǐ hǎo' }, { w: '再见', p: 'zài jiàn' }, { w: '对不起', p: 'duì bu qǐ' },
+    { w: '没关系', p: 'méi guān xì' }, { w: '不客气', p: 'bú kè qì' },
   ],
   2: [
-    {w:'北京',p:'bei jing'},{w:'上海',p:'shang hai'},{w:'广州',p:'guang zhou'},
-    {w:'深圳',p:'shen zhen'},{w:'杭州',p:'hang zhou'},{w:'成都',p:'cheng du'},
-    {w:'昨天',p:'zuo tian'},{w:'现在',p:'xian zai'},{w:'以前',p:'yi qian'},
-    {w:'以后',p:'yi hou'},{w:'生活',p:'sheng huo'},{w:'时间',p:'shi jian'},
-    {w:'方法',p:'fang fa'},{w:'原因',p:'yuan yin'},{w:'结果',p:'jie guo'},
-    {w:'医生',p:'yi sheng'},{w:'护士',p:'hu shi'},{w:'警察',p:'jing cha'},
-    {w:'司机',p:'si ji'},{w:'学生',p:'xue sheng'},{w:'老师',p:'lao shi'},
-    {w:'健康',p:'jian kang'},{w:'生病',p:'sheng bing'},{w:'工作',p:'gong zuo'},
-    {w:'网络',p:'wang luo'},{w:'软件',p:'ruan jian'},{w:'电脑',p:'dian nao'},
-    {w:'手机',p:'shou ji'},{w:'电视',p:'dian shi'},{w:'电影',p:'dian ying'},
-    {w:'音乐',p:'yin yue'},{w:'身体',p:'shen ti'},{w:'心情',p:'xin qing'},
-    {w:'味道',p:'wei dao'},{w:'声音',p:'sheng yin'},{w:'高兴',p:'gao xing'},
-    {w:'快乐',p:'kuai le'},{w:'生气',p:'sheng qi'},{w:'着急',p:'zhao ji'},
-    {w:'担心',p:'dan xin'},{w:'朋友',p:'peng you'},{w:'同学',p:'tong xue'},
-    {w:'同事',p:'tong shi'},{w:'邻居',p:'lin ju'},{w:'老师',p:'lao shi'},
-    {w:'教育',p:'jiao yu'},{w:'考试',p:'kao shi'},{w:'学习',p:'xue xi'},
-    {w:'开始',p:'kai shi'},{w:'结束',p:'jie shu'},{w:'问题',p:'wen ti'},
-    {w:'答案',p:'da an'},{w:'意思',p:'yi si'},{w:'预习',p:'yu xi'},
-    {w:'复习',p:'fu xi'},{w:'作业',p:'zuo ye'},{w:'课本',p:'ke ben'},
-    {w:'教室',p:'jiao shi'},{w:'毕业',p:'bi ye'},{w:'成绩',p:'cheng ji'},
-    {w:'迟到',p:'chi dao'},{w:'早退',p:'zao tui'},{w:'请假',p:'qing jia'},
-    {w:'加班',p:'jia ban'},{w:'工资',p:'gong zi'},{w:'存钱',p:'cun qian'},
-    {w:'花钱',p:'hua qian'},{w:'便宜',p:'pian yi'},{w:'打折',p:'da zhe'},
-    {w:'买票',p:'mai piao'},{w:'退票',p:'tui piao'},{w:'上网',p:'shang wang'},
-    {w:'下载',p:'xia zai'},{w:'发送',p:'fa song'},{w:'接收',p:'jie shou'},
-    {w:'快递',p:'kuai di'},{w:'地址',p:'di zhi'},{w:'号码',p:'hao ma'},
-    {w:'温度',p:'wen du'},{w:'空调',p:'kong tiao'},{w:'冰箱',p:'bing xiang'},
-    {w:'地图',p:'di tu'},{w:'雨伞',p:'yu san'},{w:'围巾',p:'wei jin'},
-    {w:'手套',p:'shou tao'},{w:'裙子',p:'qun zi'},{w:'袜子',p:'wa zi'},
-    {w:'旅行',p:'lu xing'},{w:'出差',p:'chu chai'},{w:'预约',p:'yu yue'},
-    {w:'取消',p:'qu xiao'},{w:'通知',p:'tong zhi'},{w:'报名',p:'bao ming'},
-    {w:'参加',p:'can jia'},{w:'欢迎',p:'huan ying'},{w:'介绍',p:'jie shao'},
-    {w:'说明',p:'shuo ming'},{w:'解释',p:'jie shi'},{w:'原因',p:'yuan yin'},
-    {w:'理由',p:'li you'},{w:'目的',p:'mu di'},{w:'感觉',p:'gan jue'},
-    {w:'认为',p:'ren wei'},{w:'记得',p:'ji de'},{w:'忘记',p:'wang ji'},
-    {w:'找到',p:'zhao dao'},{w:'丢失',p:'diu shi'},{w:'损坏',p:'sun huai'},
-    {w:'修理',p:'xiu li'},{w:'打扫',p:'da sao'},{w:'清洗',p:'qing xi'},
+    { w: '北京', p: 'běi jīng' }, { w: '上海', p: 'shàng hǎi' }, { w: '广州', p: 'guǎng zhōu' },
+    { w: '医院', p: 'yī yuàn' }, { w: '学校', p: 'xué xiào' }, { w: '银行', p: 'yín háng' },
+    { w: '火车', p: 'huǒ chē' }, { w: '飞机', p: 'fēi jī' }, { w: '水果', p: 'shuǐ guǒ' },
+    { w: '蔬菜', p: 'shū cài' }, { w: '米饭', p: 'mǐ fàn' }, { w: '面条', p: 'miàn tiáo' },
+    { w: '衣服', p: 'yī fu' }, { w: '裤子', p: 'kù zi' }, { w: '鞋子', p: 'xié zi' },
+    { w: '眼睛', p: 'yǎn jing' }, { w: '耳朵', p: 'ěr duo' }, { w: '鼻子', p: 'bí zi' },
+    { w: '嘴巴', p: 'zuǐ ba' }, { w: '手', p: 'shǒu' }, { w: '脚', p: 'jiǎo' },
+    { w: '头', p: 'tóu' }, { w: '今天', p: 'jīn tiān' }, { w: '明天', p: 'míng tiān' },
+    { w: '昨天', p: 'zuó tiān' }, { w: '早上', p: 'zǎo shang' }, { w: '晚上', p: 'wǎn shang' },
+    { w: '中午', p: 'zhōng wǔ' }, { w: '超市', p: 'chāo shì' }, { w: '公园', p: 'gōng yuán' },
+    { w: '电影', p: 'diàn yǐng' }, { w: '音乐', p: 'yīn yuè' }, { w: '动物', p: 'dòng wù' },
+    { w: '熊猫', p: 'xióng māo' }, { w: '大象', p: 'dà xiàng' },
   ],
   3: [
-    {w:'一心一意',p:'yi xin yi yi'},{w:'三心二意',p:'san xin er yi'},
-    {w:'五颜六色',p:'wu yan liu se'},{w:'七上八下',p:'qi shang ba xia'},
-    {w:'十全十美',p:'shi quan shi mei'},{w:'百花齐放',p:'bai hua qi fang'},
-    {w:'千言万语',p:'qian yan wan yu'},{w:'惊天动地',p:'jing tian dong di'},
-    {w:'东张西望',p:'dong zhang xi wang'},{w:'南来北往',p:'nan lai bei wang'},
-    {w:'前因后果',p:'qian yin hou guo'},{w:'左邻右舍',p:'zuo lin you she'},
-    {w:'大同小异',p:'da tong xiao yi'},{w:'大材小用',p:'da cai xiao yong'},
-    {w:'眼高手低',p:'yan gao shou di'},{w:'口是心非',p:'kou shi xin fei'},
-    {w:'有气无力',p:'you qi wu li'},{w:'没完没了',p:'mei wan mei liao'},
-    {w:'说三道四',p:'shuo san dao si'},{w:'能说会道',p:'neng shuo hui dao'},
-    {w:'取长补短',p:'qu chang bu duan'},{w:'丢三落四',p:'diu san la si'},
-    {w:'举一反三',p:'ju yi fan san'},{w:'三长两短',p:'san chang liang duan'},
-    {w:'不三不四',p:'bu san bu si'},{w:'低三下四',p:'di san xia si'},
-    {w:'四面八方',p:'si mian ba fang'},{w:'五湖四海',p:'wu hu si hai'},
-    {w:'万水千山',p:'wan shui qian shan'},{w:'高高兴兴',p:'gao gao xing xing'},
-    {w:'快快乐乐',p:'kuai kuai le le'},{w:'平平安安',p:'ping ping an an'},
-    {w:'红红火火',p:'hong hong huo huo'},{w:'日日夜夜',p:'ri ri ye ye'},
-    {w:'家家户户',p:'jia jia hu hu'},{w:'老老实实',p:'lao lao shi shi'},
-    {w:'认认真真',p:'ren ren zhen zhen'},{w:'风风雨雨',p:'feng feng yu yu'},
-    {w:'来来往往',p:'lai lai wang wang'},{w:'马马虎虎',p:'ma ma hu hu'},
-    {w:'自由自在',p:'zi you zi zai'},{w:'无影无踪',p:'wu ying wu zong'},
-    {w:'探头探脑',p:'tan tou tan nao'},{w:'争先恐后',p:'zheng xian kong hou'},
-    {w:'思前想后',p:'si qian xiang hou'},{w:'开开心心',p:'kai kai xin xin'},
-    {w:'多才多艺',p:'duo cai duo yi'},{w:'各式各样',p:'ge shi ge yang'},
-    {w:'一模一样',p:'yi mo yi yang'},{w:'自言自语',p:'zi yan zi yu'},
-    {w:'大手大脚',p:'da shou da jiao'},{w:'小题大做',p:'xiao ti da zuo'},
-    {w:'大吉大利',p:'da ji da li'},{w:'大起大落',p:'da qi da luo'},
+    { w: '一心一意', p: 'yī xīn yī yì' }, { w: '三心二意', p: 'sān xīn èr yì' },
+    { w: '五颜六色', p: 'wǔ yán liù sè' }, { w: '七上八下', p: 'qī shàng bā xià' },
+    { w: '十全十美', p: 'shí quán shí měi' }, { w: '百花齐放', p: 'bǎi huā qí fàng' },
+    { w: '千言万语', p: 'qiān yán wàn yǔ' }, { w: '惊天动地', p: 'jīng tiān dòng dì' },
+    { w: '东张西望', p: 'dōng zhāng xī wàng' }, { w: '南来北往', p: 'nán lái běi wǎng' },
+    { w: '前因后果', p: 'qián yīn hòu guǒ' }, { w: '左邻右舍', p: 'zuǒ lín yòu shè' },
+    { w: '上行下效', p: 'shàng xíng xià xiào' }, { w: '大同小异', p: 'dà tóng xiǎo yì' },
+    { w: '大材小用', p: 'dà cái xiǎo yòng' }, { w: '有气无力', p: 'yǒu qì wú lì' },
+    { w: '没完没了', p: 'méi wán méi liǎo' }, { w: '说三道四', p: 'shuō sān dào sì' },
+    { w: '能说会道', p: 'néng shuō huì dào' }, { w: '取长补短', p: 'qǔ cháng bǔ duǎn' },
+    { w: '举一反三', p: 'jǔ yī fǎn sān' }, { w: '四面八方', p: 'sì miàn bā fāng' },
+    { w: '五湖四海', p: 'wǔ hú sì hǎi' }, { w: '画蛇添足', p: 'huà shé tiān zú' },
+    { w: '守株待兔', p: 'shǒu zhū dài tù' }, { w: '掩耳盗铃', p: 'yǎn ěr dào líng' },
+    { w: '亡羊补牢', p: 'wáng yáng bǔ láo' }, { w: '对牛弹琴', p: 'duì niú tán qín' },
+    { w: '狐假虎威', p: 'hú jiǎ hǔ wēi' }, { w: '画龙点睛', p: 'huà lóng diǎn jīng' },
+  ],
+  4: [
+    { w: '爱', p: 'ài' }, { w: '八', p: 'bā' }, { w: '白', p: 'bái' }, { w: '百', p: 'bǎi' },
+    { w: '本', p: 'běn' }, { w: '不', p: 'bù' }, { w: '菜', p: 'cài' }, { w: '茶', p: 'chá' },
+    { w: '吃', p: 'chī' }, { w: '大', p: 'dà' }, { w: '的', p: 'de' }, { w: '点', p: 'diǎn' },
+    { w: '电', p: 'diàn' }, { w: '都', p: 'dōu' }, { w: '读', p: 'dú' }, { w: '对', p: 'duì' },
+    { w: '多', p: 'duō' }, { w: '儿', p: 'ér' }, { w: '二', p: 'èr' }, { w: '饭', p: 'fàn' },
+    { w: '房间', p: 'fáng jiān' }, { w: '高', p: 'gāo' }, { w: '个', p: 'gè' },
+    { w: '狗', p: 'gǒu' }, { w: '好', p: 'hǎo' }, { w: '喝', p: 'hē' }, { w: '和', p: 'hé' },
+    { w: '很', p: 'hěn' }, { w: '后', p: 'hòu' }, { w: '花', p: 'huā' },
+    { w: '话', p: 'huà' }, { w: '回', p: 'huí' }, { w: '会', p: 'huì' }, { w: '几', p: 'jǐ' },
+    { w: '家', p: 'jiā' }, { w: '叫', p: 'jiào' }, { w: '今', p: 'jīn' }, { w: '九', p: 'jiǔ' },
+    { w: '开', p: 'kāi' }, { w: '看', p: 'kàn' }, { w: '口', p: 'kǒu' }, { w: '来', p: 'lái' },
+    { w: '冷', p: 'lěng' }, { w: '里', p: 'lǐ' }, { w: '零', p: 'líng' }, { w: '六', p: 'liù' },
+    { w: '猫', p: 'māo' }, { w: '买', p: 'mǎi' }, { w: '卖', p: 'mài' }, { w: '忙', p: 'máng' },
+    { w: '没', p: 'méi' }, { w: '名', p: 'míng' }, { w: '那', p: 'nà' }, { w: '男', p: 'nán' },
+    { w: '你', p: 'nǐ' }, { w: '女', p: 'nǚ' }, { w: '朋', p: 'péng' }, { w: '票', p: 'piào' },
+    { w: '七', p: 'qī' }, { w: '钱', p: 'qián' }, { w: '请', p: 'qǐng' }, { w: '去', p: 'qù' },
+    { w: '热', p: 'rè' }, { w: '人', p: 'rén' }, { w: '认', p: 'rèn' }, { w: '三', p: 'sān' },
+    { w: '商', p: 'shāng' }, { w: '上', p: 'shàng' }, { w: '少', p: 'shǎo' }, { w: '谁', p: 'shuí' },
+    { w: '十', p: 'shí' }, { w: '是', p: 'shì' }, { w: '书', p: 'shū' }, { w: '水', p: 'shuǐ' },
+    { w: '四', p: 'sì' }, { w: '岁', p: 'suì' }, { w: '他', p: 'tā' }, { w: '她', p: 'tā' },
+    { w: '太', p: 'tài' }, { w: '天', p: 'tiān' }, { w: '听', p: 'tīng' }, { w: '同', p: 'tóng' },
+    { w: '我', p: 'wǒ' }, { w: '五', p: 'wǔ' }, { w: '喜', p: 'xǐ' }, { w: '下', p: 'xià' },
+    { w: '先', p: 'xiān' }, { w: '小', p: 'xiǎo' }, { w: '校', p: 'xiào' }, { w: '些', p: 'xiē' },
+    { w: '写', p: 'xiě' }, { w: '谢', p: 'xiè' }, { w: '星', p: 'xīng' }, { w: '行', p: 'xíng' },
+    { w: '休', p: 'xiū' }, { w: '学', p: 'xué' }, { w: '一', p: 'yī' }, { w: '有', p: 'yǒu' },
+    { w: '雨', p: 'yǔ' }, { w: '院', p: 'yuàn' }, { w: '月', p: 'yuè' }, { w: '再', p: 'zài' },
+    { w: '在', p: 'zài' }, { w: '怎', p: 'zěn' }, { w: '站', p: 'zhàn' }, { w: '这', p: 'zhè' },
+    { w: '中', p: 'zhōng' }, { w: '住', p: 'zhù' }, { w: '桌', p: 'zhuō' }, { w: '子', p: 'zǐ' },
+    { w: '走', p: 'zǒu' }, { w: '坐', p: 'zuò' }, { w: '做', p: 'zuò' },
+  ],
+  5: [
+    { w: '吧', p: 'ba' }, { w: '半', p: 'bàn' }, { w: '帮', p: 'bāng' }, { w: '比', p: 'bǐ' },
+    { w: '笔', p: 'bǐ' }, { w: '便', p: 'biàn' }, { w: '表', p: 'biǎo' }, { w: '别', p: 'bié' },
+    { w: '病', p: 'bìng' }, { w: '才', p: 'cái' }, { w: '操', p: 'cāo' }, { w: '层', p: 'céng' },
+    { w: '差', p: 'chà' }, { w: '常', p: 'cháng' }, { w: '唱', p: 'chàng' }, { w: '出', p: 'chū' },
+    { w: '穿', p: 'chuān' }, { w: '次', p: 'cì' }, { w: '从', p: 'cóng' }, { w: '错', p: 'cuò' },
+    { w: '打', p: 'dǎ' }, { w: '带', p: 'dài' }, { w: '但', p: 'dàn' }, { w: '当', p: 'dāng' },
+    { w: '到', p: 'dào' }, { w: '道', p: 'dào' }, { w: '得', p: 'dé' }, { w: '等', p: 'děng' },
+    { w: '地', p: 'dì' }, { w: '第', p: 'dì' }, { w: '懂', p: 'dǒng' }, { w: '动', p: 'dòng' },
+    { w: '短', p: 'duǎn' }, { w: '对', p: 'duì' }, { w: '给', p: 'gěi' }, { w: '跟', p: 'gēn' },
+    { w: '更', p: 'gèng' }, { w: '公', p: 'gōng' }, { w: '共', p: 'gòng' }, { w: '关', p: 'guān' },
+    { w: '贵', p: 'guì' }, { w: '国', p: 'guó' }, { w: '过', p: 'guò' }, { w: '还', p: 'hái' },
+    { w: '孩', p: 'hái' }, { w: '汉', p: 'hàn' }, { w: '红', p: 'hóng' }, { w: '欢', p: 'huān' },
+    { w: '环', p: 'huán' }, { w: '黄', p: 'huáng' }, { w: '机', p: 'jī' }, { w: '件', p: 'jiàn' },
+    { w: '教', p: 'jiào' }, { w: '接', p: 'jiē' }, { w: '节', p: 'jié' }, { w: '姐', p: 'jiě' },
+    { w: '近', p: 'jìn' }, { w: '进', p: 'jìn' }, { w: '久', p: 'jiǔ' }, { w: '就', p: 'jiù' },
+    { w: '觉', p: 'jué' }, { w: '卡', p: 'kǎ' }, { w: '考', p: 'kǎo' }, { w: '课', p: 'kè' },
+    { w: '快', p: 'kuài' }, { w: '老', p: 'lǎo' }, { w: '乐', p: 'lè' }, { w: '了', p: 'le' },
+    { w: '累', p: 'lèi' }, { w: '楼', p: 'lóu' }, { w: '慢', p: 'màn' }, { w: '每', p: 'měi' },
+    { w: '门', p: 'mén' }, { w: '梦', p: 'mèng' }, { w: '面', p: 'miàn' }, { w: '母', p: 'mǔ' },
+    { w: '拿', p: 'ná' }, { w: '奶', p: 'nǎi' }, { w: '难', p: 'nán' }, { w: '年', p: 'nián' },
+    { w: '牛', p: 'niú' }, { w: '旁', p: 'páng' }, { w: '跑', p: 'pǎo' }, { w: '片', p: 'piàn' },
+    { w: '苹', p: 'píng' }, { w: '瓶', p: 'píng' }, { w: '骑', p: 'qí' }, { w: '起', p: 'qǐ' },
+    { w: '汽', p: 'qì' }, { w: '千', p: 'qiān' }, { w: '前', p: 'qián' }, { w: '情', p: 'qíng' },
+    { w: '秋', p: 'qiū' }, { w: '球', p: 'qiú' }, { w: '让', p: 'ràng' }, { w: '日', p: 'rì' },
+    { w: '肉', p: 'ròu' }, { w: '色', p: 'sè' }, { w: '山', p: 'shān' }, { w: '身', p: 'shēn' },
+    { w: '生', p: 'shēng' }, { w: '师', p: 'shī' }, { w: '时', p: 'shí' }, { w: '始', p: 'shǐ' },
+    { w: '事', p: 'shì' }, { w: '试', p: 'shì' }, { w: '室', p: 'shì' }, { w: '手', p: 'shǒu' },
+    { w: '数', p: 'shù' }, { w: '送', p: 'sòng' }, { w: '宿', p: 'sù' }, { w: '虽', p: 'suī' },
+    { w: '诉', p: 'sù' }, { w: '所', p: 'suǒ' }, { w: '它', p: 'tā' }, { w: '题', p: 'tí' },
+    { w: '体', p: 'tǐ' }, { w: '跳', p: 'tiào' }, { w: '外', p: 'wài' }, { w: '玩', p: 'wán' },
+    { w: '晚', p: 'wǎn' }, { w: '网', p: 'wǎng' }, { w: '为', p: 'wèi' }, { w: '问', p: 'wèn' },
+    { w: '希', p: 'xī' }, { w: '洗', p: 'xǐ' }, { w: '想', p: 'xiǎng' }, { w: '向', p: 'xiàng' },
+    { w: '像', p: 'xiàng' }, { w: '笑', p: 'xiào' }, { w: '新', p: 'xīn' }, { w: '信', p: 'xìn' },
+    { w: '兴', p: 'xìng' }, { w: '休', p: 'xiū' }, { w: '需', p: 'xū' }, { w: '颜', p: 'yán' },
+    { w: '阳', p: 'yáng' }, { w: '样', p: 'yàng' }, { w: '药', p: 'yào' }, { w: '要', p: 'yào' },
+    { w: '也', p: 'yě' }, { w: '医', p: 'yī' }, { w: '已', p: 'yǐ' }, { w: '意', p: 'yì' },
+    { w: '因', p: 'yīn' }, { w: '阴', p: 'yīn' }, { w: '音', p: 'yīn' }, { w: '用', p: 'yòng' },
+    { w: '邮', p: 'yóu' }, { w: '游', p: 'yóu' }, { w: '鱼', p: 'yú' }, { w: '远', p: 'yuǎn' },
+    { w: '运', p: 'yùn' }, { w: '早', p: 'zǎo' }, { w: '长', p: 'zhǎng' }, { w: '找', p: 'zhǎo' },
+    { w: '真', p: 'zhēn' }, { w: '正', p: 'zhèng' }, { w: '知', p: 'zhī' }, { w: '只', p: 'zhǐ' },
+    { w: '纸', p: 'zhǐ' }, { w: '种', p: 'zhǒng' }, { w: '周', p: 'zhōu' }, { w: '猪', p: 'zhū' },
+    { w: '主', p: 'zhǔ' }, { w: '祝', p: 'zhù' }, { w: '字', p: 'zì' }, { w: '昨', p: 'zuó' },
+    { w: '左', p: 'zuǒ' }, { w: '作', p: 'zuò' },
   ]
 };
 
-// ======== 状态 ========
-let mode = 'pinyin';
-let ymPool = [];
+// ════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════
+let mode = 'type';       // type | initial | final | dictation | quiz
 let level = 1;
-let word = null;
-let correct = 0, total = 0;
-let wordIndex = 0;
-let roundWords = [];
-let sessionCorrect = {};
-let doneAnswered = false;
+let currentWord = null;
+let correct = 0;
+let total = 0;
+let used = [];
+let showPinyin = false;
+let quizAnswered = false;
+let sessionStats = loadSessionStats();
 
-// 声母韵母模式专用状态
-let smPhase = 'sm'; // 'sm' | 'ym' | 'done'
-let smCorrect = false, ymCorrect = false;
+// ════════════════════════════════════════════════════════════════
+//  DOM REFS
+// ════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const wordDisplay = $('word-display');
+const pinyinHint = $('pinyin-hint');
+const input = $('pinyin-input');
+const feedback = $('feedback');
+const correctEl = $('correct');
+const totalEl = $('total');
+const rateEl = $('rate');
+const inputArea = $('input-area');
+const optionsArea = $('options-area');
+const finalsTags = $('finals-tags');
+const errCount = $('err-count');
+const errList = $('err-list');
+const toast = $('toast');
+const modeSubtitle = $('mode-subtitle');
 
-// 错题本
-let wrongWords = [];
-try { wrongWords = JSON.parse(localStorage.getItem('pinyin-wrong') || '[]'); } catch(e) { wrongWords = []; }
-function saveWrong() { try { localStorage.setItem('pinyin-wrong', JSON.stringify(wrongWords)); } catch(e) {} updateWrongCount(); }
-function updateWrongCount() {
-  const badge = document.getElementById('wrongCount');
-  if (badge) badge.textContent = `(${wrongWords.length})`;
-  const clearBtn = document.getElementById('clearWrongBtn');
-  if (clearBtn) clearBtn.style.display = wrongWords.length > 0 ? 'inline-block' : 'none';
-}
-function clearWrongWords() {
-  if (!confirm(`确定清空全部 ${wrongWords.length} 道错题？`)) return;
-  wrongWords = []; saveWrong();
-  if (mode === 'wrong') { resetAll(); }
-}
-function addWrong(w, p) {
-  // 去重
-  if (!wrongWords.find(x => x.w === w && x.p === p)) {
-    wrongWords.push({w, p, date: new Date().toLocaleDateString()});
-    saveWrong();
-  }
-}
-// 初始化 badge
-setTimeout(updateWrongCount, 0);
+// ════════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════════
+function shuffle(arr) { for (let i = arr.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
 
-const wordEl    = document.getElementById('word');
-const pyHintEl  = document.getElementById('pyHint');
-const inpEl     = document.getElementById('inp');
-const fbEl      = document.getElementById('fb');
-const cardEl    = document.getElementById('card');
-const resultEl  = document.getElementById('result');
-const inputWrapEl = document.getElementById('inputWrap');
-const dotsEl    = document.getElementById('dots');
-const lvlGroupEl = document.getElementById('lvlGroup');
-const phaseIndicatorEl = document.getElementById('phaseIndicator');
-const badgeSmEl = document.getElementById('badgeSm');
-const badgeYmEl = document.getElementById('badgeYm');
-
-// ======== 初始化 ========
-function initRound() {
-  let pool;
-  if (mode === 'wrong') {
-    pool = [...wrongWords];
-    // 错题本专用提示
-  } else if (mode === 'sm') {
-    pool = [...(SM_WORDS[level] || SM_WORDS[1])];
-  } else if (mode === 'ym') {
-    ymPool = [...(YM_BY_LEVEL[level] || YM_BY_LEVEL[1])];
-    ymPool.sort(() => Math.random() - 0.5);
-    pool = [];
-  } else {
-    pool = [...(WORDS[level] || WORDS[1])];
-  }
-  const count = mode === 'sm' ? 15 : (level === 3 ? 8 : 12);
-  roundWords = mode === 'ym' ? [] : pool.sort(() => Math.random() - 0.5).slice(0, Math.min(count, pool.length));
-  wordIndex = 0;
-  sessionCorrect = {};
-  smPhase = 'sm';
-  smCorrect = false;
-  ymCorrect = false;
-  correct = 0; total = 0;
-  buildDots();
-  // 错题本为空时显示提示，但保留输入框让用户可以退出
-  if (mode === 'wrong' && wrongWords.length === 0) {
-    cardEl.style.display = 'flex';
-    wordEl.textContent = '暂无错题';
-    pyHintEl.innerHTML = '<span style="color:#555;font-size:14px">做错的题会自动收录到这里</span>';
-    inpEl.style.display = '';
-    inpEl.readOnly = true;
-    inpEl.placeholder = '切到其他模式开始练习';
-    return;
-  }
-  inpEl.style.display = '';
-  inpEl.readOnly = false;
-  showWord();
+function splitPinyin(p) {
+  // Split pinyin by spaces, handling multi-char words
+  return p.trim().split(/\s+/);
 }
 
-function buildDots() {
-  const len = mode === 'ym' ? ymPool.length : roundWords.length;
-  dotsEl.innerHTML = Array.from({length: len}, (_, i) =>
-    `<div class="dot" id="dot${i}" data-i="${i}">${i + 1}</div>`
-  ).join('');
+const INITIALS = ['b','p','m','f','d','t','n','l','g','k','h','j','q','x','zh','ch','sh','r','z','c','s','y','w'];
+function getInitial(py) { for (const i of INITIALS) { if (py.startsWith(i)) return i; } return ''; }
+function getFinal(py) { const i = getInitial(py); return py.slice(i.length); }
+
+function extractFinals(pinyin) {
+  return splitPinyin(pinyin).map(p => getFinal(p));
 }
 
-function showWord() {
-  const poolLen = mode === 'ym' ? ymPool.length : roundWords.length;
-  if (wordIndex >= poolLen) {
-    showResult(); return;
-  }
-  word = mode === 'ym' ? ymPool[wordIndex] : roundWords[wordIndex];
-  doneAnswered = false;
+// ════════════════════════════════════════════════════════════════
+//  SPEECH (Web Speech API - works on iOS Safari)
+// ════════════════════════════════════════════════════════════════
+function speakWord() {
+  if (!currentWord) return;
+  const u = new SpeechSynthesisUtterance(currentWord.w);
+  u.lang = 'zh-CN';
+  u.rate = 0.85;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
 
-  // 更新进度圈
-  const totalDots = mode === 'ym' ? ymPool.length : roundWords.length;
-  for (let i = 0; i < totalDots; i++) {
-    const d = document.getElementById('dot' + i);
-    if (!d) continue;
-    if (sessionCorrect[i] === true) d.className = 'dot done';
-    else if (sessionCorrect[i] === false) d.className = 'dot wrong';
-    else if (i === wordIndex) d.className = 'dot current';
-    else d.className = 'dot';
-  }
+function speakText(text) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-CN';
+  u.rate = 0.8;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
 
-  if (mode === 'sm') {
-    // 声母韵母模式
-    smPhase = 'sm';
-    smCorrect = false;
-    ymCorrect = false;
-    wordEl.textContent = word.w;
-    pyHintEl.innerHTML = `<span style="color:#888;font-size:14px">声母？ → 韵母？</span>`;
-    inpEl.value = '';
-    inpEl.className = '';
-    fbEl.textContent = '';
-    fbEl.className = 'fb';
-    phaseIndicatorEl.style.display = 'flex';
-    updatePhaseBadges();
-    inpEl.placeholder = '输入声母（如 b, zh, ch）';
-  } else if (mode === 'ym') {
-    smPhase = 'ym';
-    const item = ymPool[wordIndex];
-    wordEl.textContent = item.chars.join(' · ');
-    pyHintEl.innerHTML = `<span style="color:#888;font-size:15px">这些字共同的韵母是什么？</span><br><span style="color:#3b82f6;font-size:12px">点击下方输入框后再输入</span>`;
-    inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
-    phaseIndicatorEl.style.display = 'flex';
-    badgeSmEl.className = 'phase-badge active-ym';
-    badgeSmEl.textContent = '韵母练习';
-    badgeYmEl.style.display = 'none';
-    inpEl.placeholder = `输入韵母（如 ${item.ym}）`;
+// ════════════════════════════════════════════════════════════════
+//  WORD PICKING
+// ════════════════════════════════════════════════════════════════
+function pickWord() {
+  const pool = WORDS[level].filter(w => !used.includes(w.w));
+  if (pool.length === 0) used = [];
+  const source = pool.length ? pool : WORDS[level];
+  return source[Math.floor(Math.random() * source.length)];
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DISPLAY
+// ════════════════════════════════════════════════════════════════
+function showCharDisplay(word) {
+  wordDisplay.innerHTML = '';
+  [...word.w].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'char-tap';
+    span.textContent = ch;
+    span.onclick = () => speakText(ch);
+    const pySpan = document.createElement('span');
+    pySpan.className = 'char-pinyin';
+    const pys = splitPinyin(word.p);
+    pySpan.textContent = pys[i] || '';
+    if (showPinyin) pySpan.classList.add('show');
+    span.appendChild(pySpan);
+    wordDisplay.appendChild(span);
+  });
+}
+
+function updatePinyinHint(word) {
+  if (mode === 'type' || mode === 'quiz') {
+    pinyinHint.textContent = showPinyin ? `🔊 ${word.p}` : '';
+  } else if (mode === 'initial') {
+    const pys = splitPinyin(word.p);
+    pinyinHint.textContent = showPinyin ? `🔊 ${word.p}` : '';
+  } else if (mode === 'final') {
+    pinyinHint.textContent = showPinyin ? `🔊 ${word.p}` : '';
   } else if (mode === 'dictation') {
-    wordEl.textContent = word.p;
-    pyHintEl.innerHTML = '';
-    inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
-    phaseIndicatorEl.style.display = 'none';
-    badgeYmEl.style.display = '';
-    inpEl.placeholder = '输入汉字';
-  } else if (mode === 'wrong') {
-    wordEl.textContent = word.w;
-    const parts = word.p.split(' ').map(s => splitSM(s)).join(' &nbsp; ');
-    pyHintEl.innerHTML = `<span style="color:#f97316;font-size:12px">[错题复习]</span> ` + parts;
-    inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
-    phaseIndicatorEl.style.display = 'none';
-    badgeYmEl.style.display = '';
-    inpEl.placeholder = '输入拼音（不用声调）';
-  } else {
-    wordEl.textContent = word.w;
-    const parts = word.p.split(' ').map(s => splitSM(s)).join(' &nbsp; ');
-    pyHintEl.innerHTML = parts;
-    inpEl.value = ''; inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb';
-    phaseIndicatorEl.style.display = 'none';
-    badgeYmEl.style.display = '';
-    inpEl.placeholder = '输入拼音（不用声调）';
-  }
-  inpEl.focus();
-}
-
-function updatePhaseBadges() {
-  badgeSmEl.className = 'phase-badge';
-  badgeYmEl.className = 'phase-badge';
-  if (smPhase === 'done') {
-    badgeSmEl.classList.add('done-sm');
-    badgeSmEl.textContent = '✓ 声母';
-    badgeYmEl.classList.add('done-ym');
-    badgeYmEl.textContent = '✓ 韵母';
-  } else if (smPhase === 'ym') {
-    badgeSmEl.classList.add('done-sm');
-    badgeSmEl.textContent = '✓ 声母';
-    badgeYmEl.classList.add('active-ym');
-    badgeYmEl.textContent = '韵母？';
-  } else {
-    badgeSmEl.classList.add('active-sm');
-    badgeSmEl.textContent = '声母？';
-    badgeYmEl.classList.add('active-ym');
-    badgeYmEl.textContent = '韵母？';
+    pinyinHint.textContent = '输入对应的汉字';
   }
 }
 
-function splitSM(syllable) {
-  const SHENGMU = ['zh','ch','sh','b','p','m','f','d','t','n','l','g','k','h','j','q','x','r','z','c','s','y','w'];
-  for (const sm of SHENGMU) {
-    if (syllable.startsWith(sm)) {
-      const ym = syllable.slice(sm.length);
-      if (ym) return `<span class="sm">${sm}</span><span class="ym">${ym}</span>`;
-    }
+// ════════════════════════════════════════════════════════════════
+//  TOGGLE PINYIN
+// ════════════════════════════════════════════════════════════════
+function togglePinyin() {
+  showPinyin = !showPinyin;
+  if (currentWord) {
+    updateCharPinyin(currentWord);
+    updatePinyinHint(currentWord);
   }
-  return `<span class="sm">∅</span><span class="ym">${syllable}</span>`;
 }
 
-function showResult() {
-  cardEl.style.display = 'none';
-  inputWrapEl.style.display = 'none';
-  phaseIndicatorEl.style.display = 'none';
-  resultEl.classList.add('show');
-  const resLen = mode === 'ym' ? ymPool.length : roundWords.length;
-  document.getElementById('rRate').textContent = resLen > 0 ? Math.round(correct / resLen * 100) + '%' : '0%';
-  document.getElementById('rTotal').textContent = resLen;
-  if (correct === resLen && resLen > 0) playLevelUp();
-  else if (resLen > 0) playComplete();
+function updateCharPinyin(word) {
+  const charSpans = wordDisplay.querySelectorAll('.char-tap .char-pinyin');
+  const pys = splitPinyin(word.p);
+  charSpans.forEach((el, i) => {
+    el.textContent = pys[i] || '';
+    if (showPinyin) el.classList.add('show');
+    else el.classList.remove('show');
+  });
 }
 
-function resetAll() {
-  resultEl.classList.remove('show');
-  cardEl.style.display = 'flex';
-  inputWrapEl.style.display = 'block';
-  phaseIndicatorEl.style.display = mode === 'sm' ? 'flex' : 'none';
-  lvlGroupEl.style.display = mode === 'wrong' ? 'none' : '';
-  initRound();
-}
+// ════════════════════════════════════════════════════════════════
+//  MODE-SPECIFIC SHOW
+// ════════════════════════════════════════════════════════════════
+function showWord() {
+  currentWord = pickWord();
+  showCharDisplay(currentWord);
+  updatePinyinHint(currentWord);
+  input.value = '';
+  input.className = '';
+  feedback.textContent = '';
+  quizAnswered = false;
+  input.focus();
 
-function updateStats() {
-  const total = mode === 'ym' ? ymPool.length : roundWords.length;
-  document.getElementById('correct').textContent = correct;
-  document.getElementById('total').textContent = total;
-  document.getElementById('rate').textContent = total > 0 ? Math.round(correct / total * 100) + '%' : '0%';
-}
-
-// ======== 输入处理 ========
-let inputTimer = null;
-inpEl.addEventListener('input', () => {
-  if (!word || doneAnswered) return;
-  playKey();
-
-  clearTimeout(inputTimer);
-  inputTimer = setTimeout(() => {
-    if (mode === 'sm') { handleSMInput(); return; }
-
-    const input = inpEl.value.trim().toLowerCase().replace(/\s+/g, '');
-    const target = mode === 'dictation' ? word.w.toLowerCase() : word.p.toLowerCase().replace(/\s+/g, '');
-
-    if (!input) { inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb'; return; }
-
-    if (input === target) {
-      inpEl.className = 'ok'; fbEl.textContent = '✓ 正确！'; fbEl.className = 'fb ok'; playCorrect();
-      doneAnswered = true; sessionCorrect[wordIndex] = true; correct++; updateStats();
-    } else if (target.startsWith(input) || input.startsWith(target)) {
-      inpEl.className = ''; fbEl.textContent = '差一点'; fbEl.className = 'fb info';
-    } else {
-      inpEl.className = 'err'; fbEl.textContent = '✗ 不对'; fbEl.className = 'fb err'; playWrong();
-    }
-  }, 80);
-});
-
-inpEl.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    if (mode === 'sm') {
-      // 声母韵母模式：回车 = 强制提交当前阶段
-      if (smPhase === 'sm' && !smCorrect) commitSM();
-      else if (smPhase === 'ym' && !ymCorrect) commitYM();
-      else if (doneAnswered) goNext();
-      return;
-    }
-    if (doneAnswered) { goNext(); return; }
-    // 强制提交
-    clearTimeout(inputTimer);
-    const input = inpEl.value.trim().toLowerCase().replace(/\s+/g, '');
-    const target = mode === 'dictation' ? word.w.toLowerCase() : word.p.toLowerCase().replace(/\s+/g, '');
-    doneAnswered = true; sessionCorrect[wordIndex] = false; total++;
-    if (mode !== 'wrong') addWrong(word.w, word.p); // 收录错题
-    inpEl.className = 'err';
-    const ans = mode === 'dictation' ? word.w : word.p;
-    fbEl.textContent = '✗ 答案: ' + ans; fbEl.className = 'fb err'; playWrong();
-    setTimeout(goNext, 1200);
-  }
-});
-
-function handleSMInput() {
-  const input = inpEl.value.trim().toLowerCase();
-  if (!input) { inpEl.className = ''; fbEl.textContent = ''; fbEl.className = 'fb'; return; }
-
-  if (mode === 'ym') {
-    const item = ymPool[wordIndex];
-    const norm = input.replace(/ü/g, 'v');
-    if (norm === item.ym) {
-      inpEl.className = 'ok'; fbEl.textContent = `✓ 正确！韵母是 ${item.ym}`; fbEl.className = 'fb ok'; playCorrect();
-      doneAnswered = true; sessionCorrect[wordIndex] = true; correct++; updateStats();
-    } else if (item.ym.startsWith(norm) || norm.startsWith(item.ym)) {
-      inpEl.className = ''; fbEl.textContent = '差一点'; fbEl.className = 'fb info';
-    } else {
-      inpEl.className = 'err'; fbEl.textContent = `✗ 韵母是 "${item.ym}"`; fbEl.className = 'fb err'; playWrong();
-      doneAnswered = true; sessionCorrect[wordIndex] = false; total++;
-      if (mode !== 'wrong') addWrong(word.w, item.ym);
-    }
-    return;
+  if (mode === 'quiz') {
+    showQuizOptions(currentWord);
+  } else if (mode === 'final') {
+    showFinalsTags(currentWord);
   }
 
-  if (smPhase === 'sm') {
-    // 检验声母
-    const targetSM = word.sm === '' ? '0' : word.sm; // 空声母用 '0' 表示
-    const norm = input.replace(/[0O]/g, '0').replace(/ü/g, 'v').replace(/ǖ/g, 'v');
-    if (norm === targetSM || (word.sm === '' && (norm === '0' || norm === ''))) {
-      inpEl.className = 'ok';
-      fbEl.textContent = '✓ 声母正确！';
-      fbEl.className = 'fb ok';
-      smCorrect = true;
-      smPhase = 'ym';
-      updatePhaseBadges();
-      setTimeout(() => {
-        inpEl.value = '';
-        inpEl.className = '';
-        fbEl.textContent = '';
-        fbEl.className = 'fb';
-        inpEl.placeholder = '输入韵母（如 ai, ong）';
-        inpEl.focus();
-      }, 600);
-    } else if (word.sm !== '' && (norm.startsWith(targetSM) || targetSM.startsWith(norm))) {
-      inpEl.className = '';
-      fbEl.textContent = '差一点';
-      fbEl.className = 'fb info';
-    } else {
-      inpEl.className = 'err';
-      fbEl.textContent = `✗ 声母是 "${word.sm || '无'}"`;
-      fbEl.className = 'fb err';
-    }
-  } else if (smPhase === 'ym') {
-    // 检验韵母
-    const targetYM = word.ym.replace(/ü/g, 'v');
-    const norm = input.replace(/ü/g, 'v');
-    if (norm === targetYM) {
-      inpEl.className = 'ok';
-      fbEl.textContent = '✓ 正确！';
-      fbEl.className = 'fb ok';
-      ymCorrect = true;
-      smPhase = 'done';
-      doneAnswered = true;
-      sessionCorrect[wordIndex] = true;
-      correct++;
+  // Auto-speak on new word
+  setTimeout(() => speakWord(), 300);
+}
+
+function showFinalsTags(word) {
+  finalsTags.style.display = 'flex';
+  finalsTags.innerHTML = '';
+  const finals = extractFinals(word.p);
+  finals.forEach((f, i) => {
+    const tag = document.createElement('span');
+    tag.textContent = `韵母${i+1}: ${f}`;
+    tag.id = `final-${i}`;
+    finalsTags.appendChild(tag);
+  });
+}
+
+function markFinalDone(idx) {
+  const tag = $(`final-${idx}`);
+  if (tag) tag.classList.add('done');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  QUIZ MODE
+// ════════════════════════════════════════════════════════════════
+function showQuizOptions(word) {
+  optionsArea.style.display = 'flex';
+  inputArea.style.display = 'none';
+
+  // Generate 3 wrong options from same level
+  const pool = WORDS[level].filter(w => w.w !== word.w);
+  const wrongs = shuffle([...pool]).slice(0, 3).map(w => w.p);
+  const options = shuffle([word.p, ...wrongs]);
+
+  optionsArea.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.dataset.value = opt;
+    btn.onclick = () => {
+      if (quizAnswered) return;
+      document.querySelectorAll('.option-btn').forEach(b => b.classList.add('selected'));
+      quizAnswered = true;
+      if (opt === word.p) {
+        btn.classList.add('correct');
+        feedback.textContent = '✓ 正确！';
+        feedback.className = 'feedback ok';
+        correct++;
+        showToast('👍');
+      } else {
+        btn.classList.add('wrong');
+        // Highlight correct answer
+        document.querySelectorAll('.option-btn').forEach(b => {
+          if (b.dataset.value === word.p) b.classList.add('correct');
+        });
+        feedback.innerHTML = `✗ 正确答案: ${word.p}`;
+        feedback.className = 'feedback fail';
+        addError(currentWord);
+        showToast('😅');
+      }
+      total++;
       updateStats();
-      updatePhaseBadges();
-    } else if (norm.startsWith(targetYM) || targetYM.startsWith(norm)) {
-      inpEl.className = '';
-      fbEl.textContent = '差一点';
-      fbEl.className = 'fb info';
+      setTimeout(nextWord, 1200);
+    };
+    optionsArea.appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  CHECK ANSWER (type / initial / final / dictation)
+// ════════════════════════════════════════════════════════════════
+function checkAnswer() {
+  if (!currentWord) { nextWord(); return; }
+
+  const inputVal = input.value.trim().toLowerCase();
+  if (!inputVal) { input.focus(); return; }
+
+  let isCorrect = false;
+  let target = '';
+
+  if (mode === 'type') {
+    target = currentWord.p.toLowerCase();
+    isCorrect = inputVal === target;
+  } else if (mode === 'dictation') {
+    // User types Chinese characters, check against word
+    target = currentWord.w;
+    isCorrect = inputVal === target.toLowerCase(); // allow case mismatch but exact char match
+    // Actually for dictation, they type Chinese chars
+    isCorrect = inputVal === currentWord.w;
+  } else if (mode === 'initial') {
+    const pys = splitPinyin(currentWord.p);
+    const expected = pys.map(p => getInitial(p)).filter(i => i).join(' ');
+    target = expected;
+    isCorrect = inputVal === target;
+  } else if (mode === 'final') {
+    const pys = splitPinyin(currentWord.p);
+    const expectedFinals = pys.map(p => getFinal(p));
+    const inputParts = inputVal.split(/\s+/);
+    if (inputParts.length === expectedFinals.length) {
+      isCorrect = inputParts.every((part, i) => part === expectedFinals[i]);
+      target = expectedFinals.join(' ');
     } else {
-      inpEl.className = 'err';
-      fbEl.textContent = `✗ 韵母是 "${word.ym}"`;
-      fbEl.className = 'fb err';
+      isCorrect = false;
+      target = expectedFinals.join(' ');
     }
   }
-}
 
-function commitSM() {
-  if (smCorrect) return;
-  const input = inpEl.value.trim().toLowerCase();
-  const targetSM = word.sm === '' ? '0' : word.sm;
-  const norm = input.replace(/[0O]/g, '0').replace(/ü/g, 'v');
-  smCorrect = (norm === targetSM) || (word.sm === '' && (norm === '0' || norm === ''));
-  sessionCorrect[wordIndex] = smCorrect;
   total++;
-  if (!smCorrect) { addWrong(word.w, (word.sm === '' ? '∅' : word.sm) + word.ym); playWrong(); }
-  else { correct++; }
-  smPhase = 'ym';
-  // 声母答对：doneAnswered=true 可以跳下一题；声母答错：doneAnswered=false 等韵母
-  doneAnswered = smCorrect;
-  updatePhaseBadges();
-  inpEl.value = '';
-  inpEl.className = '';
-  fbEl.textContent = smCorrect ? '✓ 声母正确！' : `✗ 声母是 "${word.sm || '无'}"`;
-  fbEl.className = smCorrect ? 'fb ok' : 'fb err';
-  setTimeout(() => { inpEl.placeholder = '输入韵母（如 ai, ong）'; inpEl.focus(); }, 0);
-}
 
-function commitYM() {
-  if (ymCorrect) return;
-  const input = inpEl.value.trim().toLowerCase().replace(/ü/g, 'v');
-  const targetYM = word.ym.replace(/ü/g, 'v');
-  ymCorrect = input === targetYM;
-  sessionCorrect[wordIndex] = smCorrect && ymCorrect;
-  if (!ymCorrect) { total++; fbEl.textContent = `✗ 韵母是 "${word.ym}"`; fbEl.className = 'fb err'; playWrong(); }
-  else { correct++; fbEl.textContent = '✓ 正确！'; fbEl.className = 'fb ok'; playCorrect(); }
-  doneAnswered = true;
-  smPhase = 'done';
-  updatePhaseBadges();
+  if (isCorrect) {
+    correct++;
+    input.className = 'correct';
+    feedback.textContent = '✓ 正确！';
+    feedback.className = 'feedback ok';
+    showToast('👍');
+    if (mode === 'final') {
+      const finals = extractFinals(currentWord.p);
+      finals.forEach((_, i) => markFinalDone(i));
+    }
+    setTimeout(nextWord, 700);
+  } else {
+    input.className = 'wrong';
+    feedback.innerHTML = `✗ 正确答案: ${target} &nbsp; <small>你输入: ${inputVal}</small>`;
+    feedback.className = 'feedback fail';
+    addError(currentWord);
+    showToast('😅');
+  }
+
   updateStats();
 }
 
-function goNext() {
-  wordIndex++;
-  const maxLen = mode === 'ym' ? ymPool.length : roundWords.length;
-  if (wordIndex >= maxLen) { showResult(); return; }
+// ════════════════════════════════════════════════════════════════
+//  ERROR BOOK (localStorage)
+// ════════════════════════════════════════════════════════════════
+function loadErrors() {
+  try { return JSON.parse(localStorage.getItem('py_errors') || '[]'); } catch { return []; }
+}
+function saveErrors(errs) {
+  localStorage.setItem('py_errors', JSON.stringify(errs));
+}
+
+function addError(word) {
+  const errs = loadErrors();
+  if (!errs.find(e => e.w === word.w)) {
+    errs.push({ w: word.w, p: word.p, count: 1, added: Date.now() });
+  } else {
+    const e = errs.find(e => e.w === word.w);
+    e.count = (e.count || 0) + 1;
+  }
+  saveErrors(errs);
+  updateErrorBook();
+}
+
+function removeError(word) {
+  let errs = loadErrors().filter(e => e.w !== word);
+  saveErrors(errs);
+  updateErrorBook();
+}
+
+function updateErrorBook() {
+  const errs = loadErrors();
+  errCount.textContent = errs.length;
+  errList.innerHTML = '';
+  errs.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'err-item';
+    div.innerHTML = `
+      <span><span class="err-word">${e.w}</span> <span class="err-pinyin">${e.p}</span> <span style="color:#666;font-size:11px">×${e.count||1}</span></span>
+      <button onclick="removeError('${e.w}')">删除</button>
+    `;
+    errList.appendChild(div);
+  });
+}
+
+function toggleErrorBook() {
+  const panel = $('err-book-panel');
+  panel.classList.toggle('open');
+  updateErrorBook();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SESSION STATS
+// ════════════════════════════════════════════════════════════════
+function loadSessionStats() {
+  try { return JSON.parse(localStorage.getItem('py_stats') || '{"correct":0,"total":0}'); } catch { return { correct:0, total:0 }; }
+}
+function saveSessionStats() {
+  localStorage.setItem('py_stats', JSON.stringify(sessionStats));
+}
+
+// ════════════════════════════════════════════════════════════════
+//  STATS DISPLAY
+// ════════════════════════════════════════════════════════════════
+function updateStats() {
+  correctEl.textContent = correct;
+  totalEl.textContent = total;
+  rateEl.textContent = total > 0 ? Math.round(correct / total * 100) + '%' : '0%';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════════
+function showToast(emoji) {
+  toast.textContent = emoji;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 500);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  NAVIGATE
+// ════════════════════════════════════════════════════════════════
+function nextWord() {
   showWord();
 }
 
-function nextWord() {
-  if (mode === 'sm') {
-    if (doneAnswered) { wordIndex++; showWord(); }
-  } else {
-    if (doneAnswered) { wordIndex++; showWord(); }
-  }
-  inpEl.focus();
+function resetStats() {
+  correct = 0;
+  total = 0;
+  used = [];
+  updateStats();
+  showWord();
 }
 
-// ======== 模式/难度切换 ========
-document.querySelectorAll('[data-mode]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const newMode = btn.dataset.mode;
-    mode = newMode;
-    inpEl.placeholder = newMode === 'dictation' ? '输入汉字'
-                : newMode === 'sm' ? '输入声母（如 b, zh）'
-                : newMode === 'wrong' ? '重新打一遍！'
-                : '输入拼音（不用声调）';
-    phaseIndicatorEl.style.display = (newMode === 'sm' || newMode === 'ym') ? 'flex' : 'none';
-    badgeYmEl.style.display = newMode === 'ym' ? 'none' : '';
-    lvlGroupEl.style.display = newMode === 'wrong' ? 'none' : '';
-    playTick();
-    resetAll();
-  });
+// ════════════════════════════════════════════════════════════════
+//  MODE SWITCHING
+// ════════════════════════════════════════════════════════════════
+function setMode(newMode) {
+  mode = newMode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  used = [];
+
+  // Show/hide controls based on mode
+  inputArea.style.display = (mode === 'quiz') ? 'none' : 'block';
+  optionsArea.style.display = (mode === 'quiz') ? 'flex' : 'none';
+  finalsTags.style.display = (mode === 'final') ? 'flex' : 'none';
+
+  const subtitles = {
+    type: '看字打拼音，练出声调',
+    initial: '先打声母，再打韵母',
+    final: '专项练习韵母',
+    dictation: '看拼音，输入汉字',
+    quiz: '四选一，选对拼音',
+  };
+  modeSubtitle.textContent = subtitles[mode] || '';
+
+  const placeholders = {
+    type: '输入拼音（不用声调）',
+    initial: '输入声母（如: zh g）',
+    final: '输入韵母（如: ong iao）',
+    dictation: '输入汉字',
+    quiz: '',
+  };
+  input.placeholder = placeholders[mode] || '';
+
+  showWord();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ════════════════════════════════════════════════════════════════
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
 });
 
-document.querySelectorAll('[data-lvl]').forEach(btn => {
+document.querySelectorAll('.lvl-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-lvl]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.lvl-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    level = parseInt(btn.dataset.lvl);
-    playTick();
-    resetAll();
-  });
-});
-
-// 进度圈点击跳转
-dotsEl.addEventListener('click', e => {
-  const dot = e.target.closest('.dot');
-  if (!dot) return;
-  const i = parseInt(dot.dataset.i);
-  if (sessionCorrect[i] !== undefined) {
-    wordIndex = i;
-    smPhase = 'sm'; smCorrect = false; ymCorrect = false; doneAnswered = false;
+    level = parseInt(btn.dataset.level);
+    used = [];
     showWord();
+  });
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (input.className === 'wrong' || input.className === 'correct') {
+      nextWord();
+    } else {
+      checkAnswer();
+    }
   }
 });
 
-// iOS WKWebView 修复：点击输入区时聚焦并唤起键盘
-document.getElementById('inputWrap').addEventListener('click', function() {
-  inpEl.focus();
-});
-document.getElementById('inputWrap').addEventListener('touchend', function(e) {
-  e.preventDefault();
-  inpEl.focus();
-  // 延迟触发输入
-  setTimeout(function() { inpEl.click(); }, 100);
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ' && document.activeElement !== input) {
+    e.preventDefault();
+    if (mode !== 'quiz') nextWord();
+  }
 });
 
-// 启动
-initRound();
+// ════════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════════
+updateErrorBook();
+showWord();
 </script>
 </body>
 </html>
