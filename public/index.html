@@ -3,843 +3,483 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>拼音发音点读</title>
+<title>拼音打字练习</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --primary: #FF6B6B;
-    --primary-dark: #E85050;
-    --bg: #FFF5F5;
-    --card: #FFFFFF;
-    --text: #2D3436;
-    --text-light: #636E72;
-    --accent: #FFD93D;
-    --green: #6BCB77;
-    --blue: #4D96FF;
-    --shadow: 0 4px 20px rgba(0,0,0,0.08);
-  }
-  body {
-    font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0 0 80px;
-    -webkit-tap-highlight-color: transparent;
-  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--p:#FF6B6B;--pd:#E85050;--bg:#FFF5F5;--card:#fff;--text:#2D3436;--tl:#636E72;--g:#6BCB77;--b:#4D96FF;--sh:0 4px 20px rgba(0,0,0,0.08)}
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 70px;-webkit-tap-highlight-color:transparent}
+  .top-bar{background:linear-gradient(135deg,#FF6B6B,#EE5A24);padding:40px 20px 24px;text-align:center;color:#fff;border-radius:0 0 24px 24px}
+  .top-bar h1{font-size:22px;font-weight:700;letter-spacing:2px}
+  .top-bar .sub{font-size:13px;opacity:.85;margin-top:4px}
+  .unit-bar{display:flex;gap:6px;padding:14px 16px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .unit-bar::-webkit-scrollbar{display:none}
+  .unit-btn{flex-shrink:0;padding:6px 16px;border-radius:20px;border:none;font-size:13px;font-weight:500;background:#fff;color:var(--tl);box-shadow:var(--sh);cursor:pointer;transition:all .2s}
+  .unit-btn.active,.type-btn.active{background:var(--p);color:#fff}
+  .stats-row{display:flex;justify-content:space-around;padding:8px 20px 6px;font-size:12px;color:var(--tl)}
 
-  /* ── Top Bar ── */
-  .top-bar {
-    background: linear-gradient(135deg, #FF6B6B, #EE5A24);
-    padding: 40px 20px 24px;
-    text-align: center;
-    color: #fff;
-    border-radius: 0 0 24px 24px;
-    position: relative;
-  }
-  .top-bar h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
-  .top-bar .sub { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .section{display:none}.section.active{display:block}
 
-  /* ── Unit Selector ── */
-  .unit-bar {
-    display: flex; gap: 6px; padding: 14px 16px 8px;
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .unit-bar::-webkit-scrollbar { display: none; }
-  .unit-btn {
-    flex-shrink: 0; padding: 6px 16px;
-    border-radius: 20px; border: none;
-    font-size: 13px; font-weight: 500;
-    background: #fff; color: var(--text-light);
-    box-shadow: var(--shadow); cursor: pointer;
-    transition: all 0.2s;
-  }
-  .unit-btn.active { background: var(--primary); color: #fff; }
+  .word-card{background:var(--card);border-radius:20px;padding:32px 24px 24px;text-align:center;box-shadow:var(--sh);max-width:400px;margin:0 auto;position:relative}
+  .word-card .mw{font-size:54px;font-weight:700;letter-spacing:10px;color:var(--text);line-height:1.3;user-select:none}
+  .word-card .mw .ch{display:inline-block;cursor:pointer;transition:transform .15s;position:relative}
+  .word-card .mw .ch:active{transform:scale(.85)}
+  .word-card .mw .ch .py-ab{display:block;font-size:17px;font-weight:500;color:var(--p);letter-spacing:0;margin-bottom:-2px;opacity:0;transition:opacity .3s;height:24px;line-height:24px}
+  .word-card .mw .ch .py-ab.sh{opacity:1}
+  .word-card .play-btn{width:52px;height:52px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:22px;cursor:pointer;margin:12px auto 6px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(255,107,107,.4);transition:transform .2s}
+  .word-card .play-btn:active{transform:scale(.9)}
+  .word-card .py-row{font-size:19px;color:var(--p);font-weight:500;height:26px;line-height:26px;margin-top:4px;letter-spacing:2px}
 
-  /* ── Stats Mini ── */
-  .stats-row {
-    display: flex; justify-content: space-between;
-    padding: 8px 20px 6px;
-    font-size: 12px; color: var(--text-light);
-  }
-  .stats-row span { display: flex; align-items: center; gap: 4px; }
+  .act-row{display:flex;gap:10px;justify-content:center;padding:4px 16px}
+  .act-btn{flex:1;max-width:150px;padding:11px 0;border:none;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+  .act-btn:active{transform:scale(.95)}
+  .act-btn.pri{background:var(--p);color:#fff;box-shadow:0 3px 12px rgba(255,107,107,.3)}
+  .act-btn.gr{background:var(--g);color:#fff;box-shadow:0 3px 12px rgba(107,203,119,.3)}
+  .act-btn.gy{background:#fff;color:var(--tl);box-shadow:var(--sh)}
 
-  /* ── Word Card ── */
-  .card-wrap {
-    padding: 12px 16px;
-  }
-  .word-card {
-    background: var(--card);
-    border-radius: 20px;
-    padding: 36px 24px 28px;
-    text-align: center;
-    box-shadow: var(--shadow);
-    max-width: 400px; margin: 0 auto;
-    position: relative;
-  }
-  .word-card .main-word {
-    font-size: 56px; font-weight: 700;
-    letter-spacing: 12px;
-    color: var(--text);
-    line-height: 1.3;
-    user-select: none;
-  }
-  .word-card .main-word .char {
-    display: inline-block;
-    cursor: pointer;
-    transition: transform 0.15s;
-    position: relative;
-  }
-  .word-card .main-word .char:active {
-    transform: scale(0.85);
-  }
-  .word-card .main-word .char .py-above {
-    display: block;
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--primary);
-    letter-spacing: 0;
-    margin-bottom: -2px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    height: 24px;
-    line-height: 24px;
-  }
-  .word-card .main-word .char .py-above.show {
-    opacity: 1;
-  }
+  /* Typing */
+  .tp-wrap{max-width:400px;margin:0 auto;padding:0 16px}
+  #tp-in{width:100%;padding:16px 20px;font-size:20px;text-align:center;border:2px solid #ddd;border-radius:14px;background:var(--card);color:var(--text);outline:none;transition:border-color .3s,background .3s;font-family:inherit}
+  #tp-in:focus{border-color:var(--p)}
+  #tp-in.ok{border-color:var(--g);background:#F0FFF4}
+  #tp-in.no{border-color:var(--p);background:#FFF5F5}
+  .tp-fb{text-align:center;height:28px;margin-top:8px;font-size:15px}
+  .tp-fb.ok{color:var(--g)}.tp-fb.no{color:var(--p)}.tp-fb.hint{color:#fbbf24}
+  .tp-act{display:flex;justify-content:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .tp-act button{padding:8px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .15s}
+  .tp-act button:active{transform:scale(.95)}
+  .tp-c{background:var(--p);color:#fff}.tp-s{background:#fff;color:var(--tl);box-shadow:var(--sh)}
+  .tp-h{border:1px solid #fbbf24;background:#fff;color:#fbbf24}
+  .tp-p{background:var(--b);color:#fff;box-shadow:0 3px 12px rgba(77,150,255,.3)}
 
-  .word-card .play-btn {
-    width: 56px; height: 56px;
-    border-radius: 50%;
-    border: none;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    margin: 16px auto 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(255,107,107,0.4);
-    transition: transform 0.2s;
-  }
-  .word-card .play-btn:active { transform: scale(0.9); }
+  /* Type mode buttons */
+  .type-bar{display:flex;gap:6px;padding:4px 16px 10px;justify-content:center;flex-wrap:wrap}
+  .type-btn{padding:5px 14px;border:1px solid #ddd;border-radius:16px;background:#fff;color:var(--tl);font-size:12px;cursor:pointer;transition:all .2s}
+  .type-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
 
-  .word-card .pinyin-row {
-    font-size: 20px;
-    color: var(--primary);
-    font-weight: 500;
-    height: 28px;
-    line-height: 28px;
-    margin-top: 4px;
-    letter-spacing: 2px;
-  }
+  .word-list{padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px}
+  .word-list a{display:inline-block;padding:8px 16px;background:var(--card);border-radius:12px;box-shadow:var(--sh);font-size:15px;text-decoration:none;color:var(--text);transition:transform .15s}
+  .word-list a:active{transform:scale(.95)}
+  .word-list a .wl-p{display:block;font-size:11px;color:var(--p);margin-top:2px}
 
-  /* ── Action Buttons ── */
-  .action-row {
-    display: flex; gap: 12px;
-    justify-content: center;
-    padding: 0 16px 16px;
-  }
-  .action-btn {
-    flex: 1; max-width: 160px;
-    padding: 12px 0;
-    border: none; border-radius: 14px;
-    font-size: 14px; font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.15s, opacity 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-  .action-btn:active { transform: scale(0.95); }
-  .action-btn.primary { background: var(--primary); color: #fff; box-shadow: 0 3px 12px rgba(255,107,107,0.3); }
-  .action-btn.secondary { background: #fff; color: var(--text-light); box-shadow: var(--shadow); }
-  .action-btn.green { background: var(--green); color: #fff; box-shadow: 0 3px 12px rgba(107,203,119,0.3); }
-  .action-btn.blue { background: var(--blue); color: #fff; box-shadow: 0 3px 12px rgba(77,150,255,0.3); }
+  .qz-opts{display:flex;flex-direction:column;gap:10px;padding:0 16px;max-width:400px;margin:0 auto}
+  .qz-op{padding:14px 20px;background:var(--card);border:2px solid #eee;border-radius:14px;font-size:17px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s}
+  .qz-op:active{transform:scale(.97)}
+  .qz-op.ok{border-color:var(--g);background:#F0FFF4}
+  .qz-op.no{border-color:var(--p);background:#FFF5F5}
 
-  /* ── Bottom Tab Bar ── */
-  .tab-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: #fff;
-    display: flex;
-    border-top: 1px solid #eee;
-    padding: 6px 0 env(safe-area-inset-bottom);
-    z-index: 100;
-  }
-  .tab-btn {
-    flex: 1;
-    border: none; background: none;
-    padding: 6px 0;
-    font-size: 11px;
-    color: var(--text-light);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    transition: color 0.2s;
-  }
-  .tab-btn .tab-icon { font-size: 20px; }
-  .tab-btn.active { color: var(--primary); }
-  .tab-btn .badge {
-    background: var(--primary); color: #fff;
-    font-size: 10px; font-weight: 700;
-    border-radius: 10px; padding: 1px 6px;
-    position: absolute; margin-top: -4px; margin-left: 12px;
-  }
+  .err-book{padding:12px 16px}
+  .err-item{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:12px;padding:12px 16px;margin-bottom:8px;box-shadow:var(--sh)}
+  .err-item .e-w{font-size:18px;font-weight:600}
+  .err-item .e-p{font-size:13px;color:var(--p);margin-top:2px}
+  .err-item .e-d{background:none;border:1px solid #eee;border-radius:8px;padding:4px 10px;font-size:12px;color:var(--tl);cursor:pointer}
+  .py-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.py-grid .py-c{display:flex;flex-direction:column;align-items:center;padding:10px 6px;background:var(--card);border-radius:12px;box-shadow:var(--sh);cursor:pointer;transition:transform .15s;min-width:52px}
+.py-grid .py-c:active{transform:scale(.85)}
+.py-grid .py-c .py-l{font-size:22px;font-weight:700;color:var(--text)}
+.py-grid .py-c .py-s{font-size:11px;color:var(--tl);margin-top:2px}
+.py-grid .py-c.ym{min-width:56px}
+.py-grid .py-c.ym .py-l{font-size:18px}
 
-  /* ── Section: point-read ── */
-  .section { display: none; }
-  .section.active { display: block; }
+.empty{text-align:center;padding:60px 20px;color:var(--tl)}
+  .empty .big{font-size:48px;margin-bottom:12px}
 
-  /* ── List Mode ── */
-  .word-list {
-    padding: 8px 16px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .word-list a {
-    display: inline-block;
-    padding: 8px 16px;
-    background: var(--card);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    font-size: 16px;
-    text-decoration: none;
-    color: var(--text);
-    transition: transform 0.15s;
-  }
-  .word-list a:active { transform: scale(0.95); }
-  .word-list a .word-list-py {
-    display: block;
-    font-size: 11px;
-    color: var(--primary);
-    margin-top: 2px;
-  }
+  .toast{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:72px;pointer-events:none;transition:transform .3s;z-index:999}
+  .toast.sh{transform:translate(-50%,-50%) scale(1)}
+  @keyframes bi{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  .bo{animation:bi .4s ease}
 
-  /* ── Quiz Section ── */
-  .quiz-options {
-    display: flex; flex-direction: column; gap: 10px;
-    padding: 0 16px; max-width: 400px; margin: 0 auto;
-  }
-  .quiz-option {
-    padding: 14px 20px;
-    background: var(--card);
-    border: 2px solid #eee;
-    border-radius: 14px;
-    font-size: 18px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-  }
-  .quiz-option:active { transform: scale(0.97); }
-  .quiz-option.correct { border-color: var(--green); background: #F0FFF4; }
-  .quiz-option.wrong { border-color: var(--primary); background: #FFF5F5; }
-
-  /* ── Error Book ── */
-  .err-book {
-    padding: 12px 16px;
-  }
-  .err-item {
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--card); border-radius: 12px;
-    padding: 12px 16px; margin-bottom: 8px;
-    box-shadow: var(--shadow);
-  }
-  .err-item .err-word { font-size: 18px; font-weight: 600; }
-  .err-item .err-py { font-size: 13px; color: var(--primary); margin-top: 2px; }
-  .err-item .err-del {
-    background: none; border: 1px solid #eee;
-    border-radius: 8px; padding: 4px 10px;
-    font-size: 12px; color: var(--text-light); cursor: pointer;
-  }
-
-  /* ── Empty state ── */
-  .empty-state {
-    text-align: center; padding: 60px 20px;
-    color: var(--text-light);
-  }
-  .empty-state .big { font-size: 48px; margin-bottom: 12px; }
-
-  /* ── Toast ── */
-  .toast {
-    position: fixed; top: 40%; left: 50%; transform: translate(-50%,-50%) scale(0);
-    font-size: 72px; pointer-events: none;
-    transition: transform 0.3s; z-index: 999;
-  }
-  .toast.show { transform: translate(-50%,-50%) scale(1); }
-
-  /* ── Animation ── */
-  @keyframes bounceIn {
-    0% { transform: scale(0.5); opacity: 0; }
-    60% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .bounce-in { animation: bounceIn 0.4s ease; }
-
-  @media (min-width: 500px) {
-    .word-card .main-word { font-size: 68px; }
-    .top-bar { padding: 50px 20px 30px; }
-  }
+  .tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #eee;padding:6px 0 env(safe-area-inset-bottom);z-index:100}
+  .tab-btn{flex:1;border:none;background:none;padding:6px 0;font-size:11px;color:var(--tl);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .2s}
+  .tab-btn .ti{font-size:20px}.tab-btn.act{color:var(--p)}
+  .tab-btn .bd{background:var(--p);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;position:absolute;margin-top:-4px;margin-left:14px}
+  @media(min-width:500px){.word-card .mw{font-size:64px}.top-bar{padding:50px 20px 30px}}
 </style>
 </head>
 <body>
 
-<!-- ═══ Toast ═══ -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="tt"></div>
+<div class="top-bar"><h1>⌨️ 拼音打字</h1><div class="sub">看字打拼音 · 快快练起来</div></div>
+<div class="unit-bar" id="ub"></div>
+<div class="stats-row"><span>📖 学过 <strong id="lc">0</strong></span><span>✅ 正确 <strong id="cc">0</strong></span><span>📊 正确率 <strong id="rc">0%</strong></span></div>
 
-<!-- ═══ Top Bar ═══ -->
-<div class="top-bar">
-  <h1>🦊 拼音点读</h1>
-  <div class="sub">点一下字就会读哦</div>
+<!-- ═══ 打字 ═══ -->
+<div class="section active" id="s-type">
+  <div class="word-card bo" id="tc">
+    <div class="mw" id="tw"></div>
+    <button class="play-btn" id="ts">🔊</button>
+    <div class="py-row" id="tpy"></div>
+  </div>
+  <div class="tp-wrap">
+    <input type="text" id="tp-in" placeholder="输入拼音..." autocomplete="off" autofocus>
+    <div class="tp-fb" id="tp-fb"></div>
+  </div>
+  <div class="tp-act">
+    <button class="tp-c" id="tp-c">✅ 检查</button>
+    <button class="tp-h" id="tp-h">💡 提示</button>
+    <button class="tp-s" id="tp-s">⏭ 跳过</button>
+  </div>
+  <div style="text-align:center;padding:6px 16px;font-size:12px;color:var(--tl)">第 <span id="tp-i">1</span> / <span id="tp-n">0</span> 题</div>
 </div>
 
-<!-- ═══ Unit Selector ═══ -->
-<div class="unit-bar" id="unit-bar"></div>
-
-<!-- ═══ Stats ═══ -->
-<div class="stats-row">
-  <span>📖 已学 <strong id="learned-count">0</strong></span>
-  <span>✅ 正确 <strong id="correct-count">0</strong></span>
-  <span>📊 正确率 <strong id="rate-display">0%</strong></span>
-</div>
-
-<!-- ═══ Section: 点读 ═══ -->
-<div class="section active" id="sec-pointread">
-  <div class="card-wrap">
-    <div class="word-card bounce-in" id="word-card">
-      <div class="main-word" id="main-word"></div>
-      <button class="play-btn" id="play-btn">🔊</button>
-      <div class="pinyin-row" id="pinyin-row"></div>
-    </div>
+<!-- ═══ 点读 ═══ -->
+<div class="section" id="s-read">
+  <div class="word-card bo" id="rc">
+    <div class="mw" id="rw"></div>
+    <button class="play-btn" id="pb">🔊</button>
+    <div class="py-row" id="rpy"></div>
   </div>
-  <div class="action-row">
-    <button class="action-btn primary" id="prev-btn">◀ 上一个</button>
-    <button class="action-btn green" id="next-btn">下一个 ▶</button>
+  <div class="act-row">
+    <button class="act-btn gy" id="pr">◀ 上一个</button>
+    <button class="act-btn gr" id="nx">下一个 ▶</button>
   </div>
-  <div class="action-row">
-    <button class="action-btn secondary" id="toggle-py-btn">👁 显示拼音</button>
-    <button class="action-btn secondary" id="shuffle-btn">🔀 随机</button>
-  </div>
-</div>
-
-<!-- ═══ Section: 列表 ═══ -->
-<div class="section" id="sec-list">
-  <div class="word-list" id="word-list"></div>
-</div>
-
-<!-- ═══ Section: 测验 ═══ -->
-<div class="section" id="sec-quiz">
-  <div class="card-wrap">
-    <div class="word-card">
-      <div class="main-word" style="font-size:48px;letter-spacing:4px" id="quiz-word"></div>
-      <div class="pinyin-row" style="color:var(--text-light);font-size:14px" id="quiz-desc">选择正确的拼音</div>
-    </div>
-  </div>
-  <div class="quiz-options" id="quiz-options"></div>
-  <div class="action-row">
-    <button class="action-btn primary" id="quiz-next">下一题 ▶</button>
+  <div class="act-row">
+    <button class="act-btn gy" id="tpy-btn">👁 显示拼音</button>
+    <button class="act-btn gy" id="shf">🔀 随机</button>
   </div>
 </div>
 
-<!-- ═══ Section: 错题本 ═══ -->
-<div class="section" id="sec-errors">
-  <div class="err-book" id="err-book"></div>
+<!-- ═══ 词库 ═══ -->
+<div class="section" id="s-list"><div class="word-list" id="wl"></div></div>
+
+<!-- ═══ 测验 ═══ -->
+<div class="section" id="s-quiz">
+  <div class="word-card">
+    <div class="mw" style="font-size:46px;letter-spacing:4px" id="qw"></div>
+    <div class="py-row" style="color:var(--tl);font-size:14px">选择正确拼音</div>
+  </div>
+  <div class="qz-opts" id="qo"></div>
+  <div class="act-row"><button class="act-btn pri" id="qn">下一题 ▶</button></div>
 </div>
 
-<!-- ═══ Bottom Tab Bar ═══ -->
+<!-- ═══ 错题 ═══ -->
+<div class="section" id="s-err"><div class="err-book" id="eb"></div></div>
+
+<!-- ═══ 拼音表 ═══ -->
+<div class="section" id="s-py">
+  <div style="padding:0 16px">
+    <div style="font-size:16px;font-weight:700;color:var(--p);margin:10px 0 6px 4px">声母 (21个)</div>
+    <div class="py-grid" id="sm-grid"></div>
+    <div style="font-size:16px;font-weight:700;color:var(--p);margin:14px 0 6px 4px">韵母 (24个)</div>
+    <div class="py-grid" id="ym-grid"></div>
+  </div>
+</div>
+
 <div class="tab-bar">
-  <button class="tab-btn active" data-tab="sec-pointread">
-    <span class="tab-icon">📖</span>
-    <span>点读</span>
-  </button>
-  <button class="tab-btn" data-tab="sec-list">
-    <span class="tab-icon">📋</span>
-    <span>词库</span>
-  </button>
-  <button class="tab-btn" data-tab="sec-quiz">
-    <span class="tab-icon">✍️</span>
-    <span>测验</span>
-  </button>
-  <button class="tab-btn" data-tab="sec-errors">
-    <span class="tab-icon">📕</span>
-    <span>错题</span>
-    <span class="badge" id="tab-err-badge" style="display:none">0</span>
-  </button>
+  <button class="tab-btn act" data-t="s-type"><span class="ti">⌨️</span><span>打字</span></button>
+  <button class="tab-btn" data-t="s-read"><span class="ti">📖</span><span>点读</span></button>
+  <button class="tab-btn" data-t="s-py"><span class="ti">🔤</span><span>拼音表</span></button>
+  <button class="tab-btn" data-t="s-list"><span class="ti">📋</span><span>词库</span></button>
+  <button class="tab-btn" data-t="s-quiz"><span class="ti">✍️</span><span>测验</span></button>
+  <button class="tab-btn" data-t="s-err"><span class="ti">📕</span><span>错题<span class="bd" id="ebadge" style="display:none">0</span></span></button>
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════════
-//  WORD DATA — 按课/单元分类（仿小学语文课本）
-// ════════════════════════════════════════════════════════════
-const UNITS = [
-  { name: '🌱 一年级上', words: [
-    { w: '妈妈', p: 'mā ma' }, { w: '爸爸', p: 'bà ba' }, { w: '大', p: 'dà' },
-    { w: '小', p: 'xiǎo' }, { w: '天', p: 'tiān' }, { w: '人', p: 'rén' },
-    { w: '口', p: 'kǒu' }, { w: '手', p: 'shǒu' }, { w: '水', p: 'shuǐ' },
-    { w: '火', p: 'huǒ' }, { w: '山', p: 'shān' }, { w: '石', p: 'shí' },
-    { w: '田', p: 'tián' }, { w: '土', p: 'tǔ' }, { w: '木', p: 'mù' },
-    { w: '禾', p: 'hé' }, { w: '花', p: 'huā' }, { w: '草', p: 'cǎo' },
-    { w: '鱼', p: 'yú' }, { w: '鸟', p: 'niǎo' }, { w: '马', p: 'mǎ' },
-    { w: '牛', p: 'niú' }, { w: '羊', p: 'yáng' }, { w: '虫', p: 'chóng' },
-    { w: '云', p: 'yún' }, { w: '雨', p: 'yǔ' }, { w: '风', p: 'fēng' },
-    { w: '日', p: 'rì' }, { w: '月', p: 'yuè' }, { w: '星', p: 'xīng' },
+// ══ UNITS (typing-focused categories) ══
+const U = [
+  // ── 课本 ──
+  {nm:'🌱 一年级上',tp:'keb',w:[
+    {w:'妈妈',p:'mā ma'},{w:'爸爸',p:'bà ba'},{w:'大',p:'dà'},{w:'小',p:'xiǎo'},{w:'天',p:'tiān'},
+    {w:'人',p:'rén'},{w:'口',p:'kǒu'},{w:'手',p:'shǒu'},{w:'水',p:'shuǐ'},{w:'火',p:'huǒ'},
+    {w:'山',p:'shān'},{w:'花',p:'huā'},{w:'草',p:'cǎo'},{w:'鱼',p:'yú'},{w:'鸟',p:'niǎo'},
+    {w:'云',p:'yún'},{w:'雨',p:'yǔ'},{w:'日',p:'rì'},{w:'月',p:'yuè'},{w:'星',p:'xīng'},
   ]},
-  { name: '🌟 一年级下', words: [
-    { w: '春天', p: 'chūn tiān' }, { w: '太阳', p: 'tài yáng' }, { w: '秋天', p: 'qiū tiān' },
-    { w: '雪花', p: 'xuě huā' }, { w: '白云', p: 'bái yún' }, { w: '蓝天', p: 'lán tiān' },
-    { w: '草地', p: 'cǎo dì' }, { w: '花朵', p: 'huā duǒ' }, { w: '美丽', p: 'měi lì' },
-    { w: '快乐', p: 'kuài lè' }, { w: '朋友', p: 'péng you' }, { w: '老师', p: 'lǎo shī' },
-    { w: '同学', p: 'tóng xué' }, { w: '学习', p: 'xué xí' }, { w: '看书', p: 'kàn shū' },
-    { w: '写字', p: 'xiě zì' }, { w: '唱歌', p: 'chàng gē' }, { w: '画画', p: 'huà huà' },
-    { w: '跳舞', p: 'tiào wǔ' }, { w: '跑步', p: 'pǎo bù' }, { w: '吃饭', p: 'chī fàn' },
-    { w: '喝水', p: 'hē shuǐ' }, { w: '睡觉', p: 'shuì jiào' }, { w: '早安', p: 'zǎo ān' },
-    { w: '晚安', p: 'wǎn ān' }, { w: '你好', p: 'nǐ hǎo' }, { w: '再见', p: 'zài jiàn' },
-    { w: '谢谢', p: 'xiè xiè' }, { w: '对不起', p: 'duì bu qǐ' }, { w: '没关系', p: 'méi guān xì' },
+  {nm:'🌟 一年级下',tp:'keb',w:[
+    {w:'春天',p:'chūn tiān'},{w:'太阳',p:'tài yáng'},{w:'雪花',p:'xuě huā'},{w:'白云',p:'bái yún'},
+    {w:'草地',p:'cǎo dì'},{w:'花朵',p:'huā duǒ'},{w:'美丽',p:'měi lì'},{w:'快乐',p:'kuài lè'},
+    {w:'朋友',p:'péng you'},{w:'老师',p:'lǎo shī'},{w:'学习',p:'xué xí'},{w:'看书',p:'kàn shū'},
+    {w:'吃饭',p:'chī fàn'},{w:'喝水',p:'hē shuǐ'},{w:'睡觉',p:'shuì jiào'},{w:'跑步',p:'pǎo bù'},
+    {w:'你好',p:'nǐ hǎo'},{w:'谢谢',p:'xiè xiè'},{w:'再见',p:'zài jiàn'},{w:'对不起',p:'duì bu qǐ'},
   ]},
-  { name: '📘 二年级', words: [
-    { w: '菊花', p: 'jú huā' }, { w: '荷花', p: 'hé huā' }, { w: '梅花', p: 'méi huā' },
-    { w: '大树', p: 'dà shù' }, { w: '树叶', p: 'shù yè' }, { w: '森林', p: 'sēn lín' },
-    { w: '动物', p: 'dòng wù' }, { w: '熊猫', p: 'xióng māo' }, { w: '大象', p: 'dà xiàng' },
-    { w: '兔子', p: 'tù zi' }, { w: '猴子', p: 'hóu zi' }, { w: '老虎', p: 'lǎo hǔ' },
-    { w: '狮子', p: 'shī zi' }, { w: '金鱼', p: 'jīn yú' }, { w: '海豚', p: 'hǎi tún' },
-    { w: '校园', p: 'xiào yuán' }, { w: '教室', p: 'jiào shì' }, { w: '操场', p: 'cāo chǎng' },
-    { w: '图书', p: 'tú shū' }, { w: '电脑', p: 'diàn nǎo' }, { w: '电话', p: 'diàn huà' },
-    { w: '中国', p: 'zhōng guó' }, { w: '北京', p: 'běi jīng' }, { w: '长城', p: 'cháng chéng' },
-    { w: '黄河', p: 'huáng hé' }, { w: '长江', p: 'cháng jiāng' }, { w: '祖国', p: 'zǔ guó' },
-    { w: '世界', p: 'shì jiè' }, { w: '国家', p: 'guó jiā' }, { w: '城市', p: 'chéng shì' },
+  {nm:'📘 二年级',tp:'keb',w:[
+    {w:'熊猫',p:'xióng māo'},{w:'大象',p:'dà xiàng'},{w:'兔子',p:'tù zi'},{w:'猴子',p:'hóu zi'},
+    {w:'老虎',p:'lǎo hǔ'},{w:'校园',p:'xiào yuán'},{w:'教室',p:'jiào shì'},{w:'电脑',p:'diàn nǎo'},
+    {w:'中国',p:'zhōng guó'},{w:'北京',p:'běi jīng'},{w:'长城',p:'cháng chéng'},{w:'国家',p:'guó jiā'},
+    {w:'动物',p:'dòng wù'},{w:'森林',p:'sēn lín'},{w:'树叶',p:'shù yè'},{w:'菊花',p:'jú huā'},
   ]},
-  { name: '🌸 三年级', words: [
-    { w: '清晨', p: 'qīng chén' }, { w: '阳光', p: 'yáng guāng' }, { w: '温暖', p: 'wēn nuǎn' },
-    { w: '鲜艳', p: 'xiān yàn' }, { w: '灿烂', p: 'càn làn' }, { w: '芬芳', p: 'fēn fāng' },
-    { w: '味道', p: 'wèi dào' }, { w: '颜色', p: 'yán sè' }, { w: '形状', p: 'xíng zhuàng' },
-    { w: '巨大', p: 'jù dà' }, { w: '微小', p: 'wēi xiǎo' }, { w: '精彩', p: 'jīng cǎi' },
-    { w: '勇敢', p: 'yǒng gǎn' }, { w: '善良', p: 'shàn liáng' }, { w: '勤劳', p: 'qín láo' },
-    { w: '诚实', p: 'chéng shí' }, { w: '聪明', p: 'cōng ming' }, { w: '努力', p: 'nǔ lì' },
-    { w: '认真', p: 'rèn zhēn' }, { w: '仔细', p: 'zǐ xì' }, { w: '高兴', p: 'gāo xìng' },
-    { w: '生气', p: 'shēng qì' }, { w: '害怕', p: 'hài pà' }, { w: '伤心', p: 'shāng xīn' },
-    { w: '惊讶', p: 'jīng yà' }, { w: '感动', p: 'gǎn dòng' }, { w: '幸福', p: 'xìng fú' },
-    { w: '骄傲', p: 'jiāo ào' }, { w: '谦虚', p: 'qiān xū' }, { w: '团结', p: 'tuán jié' },
+  // ── 易混声母专项 ──
+  {nm:'🔊 zh-z',tp:'init',w:[
+    {w:'中国',p:'zhōng guó'},{w:'知道',p:'zhī dào'},{w:'站',p:'zhàn'},{w:'这',p:'zhè'},
+    {w:'真',p:'zhēn'},{w:'正',p:'zhèng'},{w:'住',p:'zhù'},{w:'长',p:'zhǎng'},
+    {w:'找',p:'zhǎo'},{w:'种',p:'zhǒng'},{w:'主',p:'zhǔ'},{w:'纸',p:'zhǐ'},
+    {w:'字',p:'zì'},{w:'子',p:'zǐ'},{w:'走',p:'zǒu'},{w:'坐',p:'zuò'},
+    {w:'在',p:'zài'},{w:'早',p:'zǎo'},{w:'做',p:'zuò'},{w:'最',p:'zuì'},
   ]},
-  { name: '🍎 日常用语', words: [
-    { w: '你好吗', p: 'nǐ hǎo ma' }, { w: '早上好', p: 'zǎo shang hǎo' }, { w: '下午好', p: 'xià wǔ hǎo' },
-    { w: '晚上好', p: 'wǎn shang hǎo' }, { w: '明天见', p: 'míng tiān jiàn' }, { w: '一会儿见', p: 'yī huì er jiàn' },
-    { w: '请问', p: 'qǐng wèn' }, { w: '麻烦你', p: 'má fan nǐ' }, { w: '不好意思', p: 'bù hǎo yì si' },
-    { w: '没关系', p: 'méi guān xì' }, { w: '没问题', p: 'méi wèn tí' }, { w: '知道了', p: 'zhī dào le' },
-    { w: '明白了', p: 'míng bái le' }, { w: '加油', p: 'jiā yóu' }, { w: '很棒', p: 'hěn bàng' },
-    { w: '真好看', p: 'zhēn hǎo kàn' }, { w: '好厉害', p: 'hǎo lì hài' }, { w: '太棒了', p: 'tài bàng le' },
-    { w: '生日快乐', p: 'shēng rì kuài lè' }, { w: '新年快乐', p: 'xīn nián kuài lè' }, { w: '圣诞快乐', p: 'shèng dàn kuài lè' },
-    { w: '身体健康', p: 'shēn tǐ jiàn kāng' }, { w: '万事如意', p: 'wàn shì rú yì' }, { w: '恭喜发财', p: 'gōng xǐ fā cái' },
-    { w: '我爱你', p: 'wǒ ài nǐ' }, { w: '我想你', p: 'wǒ xiǎng nǐ' }, { w: '我很好', p: 'wǒ hěn hǎo' },
-    { w: '你吃饭了吗', p: 'nǐ chī fàn le ma' }, { w: '我吃了', p: 'wǒ chī le' },
+  {nm:'🔊 ch-c',tp:'init',w:[
+    {w:'吃',p:'chī'},{w:'出',p:'chū'},{w:'穿',p:'chuān'},{w:'长',p:'cháng'},
+    {w:'唱',p:'chàng'},{w:'春',p:'chūn'},{w:'城',p:'chéng'},{w:'差',p:'chà'},
+    {w:'草',p:'cǎo'},{w:'菜',p:'cài'},{w:'次',p:'cì'},{w:'从',p:'cóng'},
+    {w:'错',p:'cuò'},{w:'才',p:'cái'},{w:'层',p:'céng'},{w:'操',p:'cāo'},
   ]},
-  { name: '🎵 动物世界', words: [
-    { w: '小猫', p: 'xiǎo māo' }, { w: '小狗', p: 'xiǎo gǒu' }, { w: '小鸟', p: 'xiǎo niǎo' },
-    { w: '小鸡', p: 'xiǎo jī' }, { w: '小鸭', p: 'xiǎo yā' }, { w: '小猪', p: 'xiǎo zhū' },
-    { w: '小羊', p: 'xiǎo yáng' }, { w: '小牛', p: 'xiǎo niú' }, { w: '小马', p: 'xiǎo mǎ' },
-    { w: '小鹿', p: 'xiǎo lù' }, { w: '长颈鹿', p: 'cháng jǐng lù' }, { w: '大熊猫', p: 'dà xióng māo' },
-    { w: '北极熊', p: 'běi jí xióng' }, { w: '小兔子', p: 'xiǎo tù zi' }, { w: '小松鼠', p: 'xiǎo sōng shǔ' },
-    { w: '小刺猬', p: 'xiǎo cì wei' }, { w: '小青蛙', p: 'xiǎo qīng wā' }, { w: '小乌龟', p: 'xiǎo wū guī' },
-    { w: '小海豚', p: 'xiǎo hǎi tún' }, { w: '大鲨鱼', p: 'dà shā yú' }, { w: '小企鹅', p: 'xiǎo qǐ é' },
-    { w: '大白鹅', p: 'dà bái é' }, { w: '小蜜蜂', p: 'xiǎo mì fēng' }, { w: '小蝴蝶', p: 'xiǎo hú dié' },
-    { w: '小蚂蚁', p: 'xiǎo mǎ yǐ' }, { w: '大公鸡', p: 'dà gōng jī' }, { w: '小燕子', p: 'xiǎo yàn zi' },
-    { w: '花蝴蝶', p: 'huā hú dié' }, { w: '萤火虫', p: 'yíng huǒ chóng' }, { w: '小蜗牛', p: 'xiǎo wō niú' },
+  {nm:'🔊 sh-s',tp:'init',w:[
+    {w:'是',p:'shì'},{w:'十',p:'shí'},{w:'书',p:'shū'},{w:'水',p:'shuǐ'},
+    {w:'上',p:'shàng'},{w:'谁',p:'shuí'},{w:'手',p:'shǒu'},{w:'山',p:'shān'},
+    {w:'说',p:'shuō'},{w:'师',p:'shī'},{w:'身',p:'shēn'},{w:'少',p:'shǎo'},
+    {w:'三',p:'sān'},{w:'四',p:'sì'},{w:'岁',p:'suì'},{w:'送',p:'sòng'},
+    {w:'色',p:'sè'},{w:'所',p:'suǒ'},{w:'诉',p:'sù'},{w:'宿',p:'sù'},
   ]},
-  { name: '🍎 水果蔬菜', words: [
-    { w: '苹果', p: 'píng guǒ' }, { w: '香蕉', p: 'xiāng jiāo' }, { w: '西瓜', p: 'xī guā' },
-    { w: '草莓', p: 'cǎo méi' }, { w: '葡萄', p: 'pú táo' }, { w: '橘子', p: 'jú zi' },
-    { w: '芒果', p: 'máng guǒ' }, { w: '桃子', p: 'táo zi' }, { w: '梨', p: 'lí' },
-    { w: '樱桃', p: 'yīng táo' }, { w: '柠檬', p: 'níng méng' }, { w: '菠萝', p: 'bō luó' },
-    { w: '猕猴桃', p: 'mí hóu táo' }, { w: '火龙果', p: 'huǒ lóng guǒ' }, { w: '圣女果', p: 'shèng nǚ guǒ' },
-    { w: '白菜', p: 'bái cài' }, { w: '萝卜', p: 'luó bo' }, { w: '土豆', p: 'tǔ dòu' },
-    { w: '番茄', p: 'fān qié' }, { w: '黄瓜', p: 'huáng guā' }, { w: '茄子', p: 'qié zi' },
-    { w: '辣椒', p: 'là jiāo' }, { w: '玉米', p: 'yù mǐ' }, { w: '南瓜', p: 'nán guā' },
-    { w: '蘑菇', p: 'mó gu' }, { w: '胡萝卜', p: 'hú luó bo' }, { w: '西兰花', p: 'xī lán huā' },
-    { w: '西红柿', p: 'xī hóng shì' }, { w: '大白菜', p: 'dà bái cài' },
+  {nm:'🔊 n-l',tp:'init',w:[
+    {w:'你',p:'nǐ'},{w:'那',p:'nà'},{w:'男',p:'nán'},{w:'女',p:'nǚ'},
+    {w:'牛',p:'niú'},{w:'难',p:'nán'},{w:'奶',p:'nǎi'},{w:'年',p:'nián'},
+    {w:'来',p:'lái'},{w:'老',p:'lǎo'},{w:'里',p:'lǐ'},{w:'冷',p:'lěng'},
+    {w:'六',p:'liù'},{w:'零',p:'líng'},{w:'楼',p:'lóu'},{w:'乐',p:'lè'},
   ]},
-  { name: '🦊 成语', words: [
-    { w: '一心一意', p: 'yī xīn yī yì' }, { w: '三心二意', p: 'sān xīn èr yì' },
-    { w: '五颜六色', p: 'wǔ yán liù sè' }, { w: '七上八下', p: 'qī shàng bā xià' },
-    { w: '十全十美', p: 'shí quán shí měi' }, { w: '百花齐放', p: 'bǎi huā qí fàng' },
-    { w: '守株待兔', p: 'shǒu zhū dài tù' }, { w: '画蛇添足', p: 'huà shé tiān zú' },
-    { w: '亡羊补牢', p: 'wáng yáng bǔ láo' }, { w: '掩耳盗铃', p: 'yǎn ěr dào líng' },
-    { w: '对牛弹琴', p: 'duì niú tán qín' }, { w: '狐假虎威', p: 'hú jiǎ hǔ wēi' },
-    { w: '画龙点睛', p: 'huà lóng diǎn jīng' }, { w: '叶公好龙', p: 'yè gōng hào lóng' },
-    { w: '井底之蛙', p: 'jǐng dǐ zhī wā' }, { w: '拔苗助长', p: 'bá miáo zhù zhǎng' },
-    { w: '刻舟求剑', p: 'kè zhōu qiú jiàn' }, { w: '自相矛盾', p: 'zì xiāng máo dùn' },
-    { w: '坐井观天', p: 'zuò jǐng guān tiān' }, { w: '南辕北辙', p: 'nán yuán běi zhé' },
-    { w: '夸父追日', p: 'kuā fù zhuī rì' }, { w: '精卫填海', p: 'jīng wèi tián hǎi' },
-    { w: '愚公移山', p: 'yú gōng yí shān' }, { w: '女娲补天', p: 'nǚ wā bǔ tiān' },
-    { w: '大禹治水', p: 'dà yǔ zhì shuǐ' }, { w: '嫦娥奔月', p: 'cháng é bēn yuè' },
-    { w: '牛郎织女', p: 'niú láng zhī nǚ' }, { w: '梁山伯与祝英台', p: 'liáng shān bó yǔ zhù yīng tái' },
+  {nm:'🔊 r-l',tp:'init',w:[
+    {w:'人',p:'rén'},{w:'日',p:'rì'},{w:'热',p:'rè'},{w:'肉',p:'ròu'},
+    {w:'让',p:'ràng'},{w:'认',p:'rèn'},{w:'来',p:'lái'},{w:'了',p:'le'},
+    {w:'老',p:'lǎo'},{w:'里',p:'lǐ'},{w:'路',p:'lù'},{w:'绿',p:'lǜ'},
+  ]},
+  {nm:'🔊 j-q-x',tp:'init',w:[
+    {w:'家',p:'jiā'},{w:'叫',p:'jiào'},{w:'今',p:'jīn'},{w:'九',p:'jiǔ'},
+    {w:'见',p:'jiàn'},{w:'姐',p:'jiě'},{w:'进',p:'jìn'},{w:'就',p:'jiù'},
+    {w:'去',p:'qù'},{w:'七',p:'qī'},{w:'前',p:'qián'},{w:'请',p:'qǐng'},
+    {w:'钱',p:'qián'},{w:'起',p:'qǐ'},{w:'喜',p:'xǐ'},{w:'小',p:'xiǎo'},
+    {w:'学',p:'xué'},{w:'星',p:'xīng'},{w:'谢',p:'xiè'},{w:'想',p:'xiǎng'},
+  ]},
+  {nm:'🔊 b-p',tp:'init',w:[
+    {w:'八',p:'bā'},{w:'白',p:'bái'},{w:'百',p:'bǎi'},{w:'半',p:'bàn'},
+    {w:'本',p:'běn'},{w:'比',p:'bǐ'},{w:'不',p:'bù'},{w:'跑',p:'pǎo'},
+    {w:'朋',p:'péng'},{w:'票',p:'piào'},{w:'片',p:'piàn'},{w:'瓶',p:'píng'},
+  ]},
+  {nm:'🔊 d-t',tp:'init',w:[
+    {w:'大',p:'dà'},{w:'点',p:'diǎn'},{w:'都',p:'dōu'},{w:'对',p:'duì'},
+    {w:'多',p:'duō'},{w:'打',p:'dǎ'},{w:'到',p:'dào'},{w:'得',p:'dé'},
+    {w:'他',p:'tā'},{w:'天',p:'tiān'},{w:'太',p:'tài'},{w:'听',p:'tīng'},
+    {w:'同',p:'tóng'},{w:'题',p:'tí'},{w:'体',p:'tǐ'},{w:'跳',p:'tiào'},
+  ]},
+  {nm:'🔊 g-k-h',tp:'init',w:[
+    {w:'高',p:'gāo'},{w:'个',p:'gè'},{w:'工',p:'gōng'},{w:'狗',p:'gǒu'},
+    {w:'关',p:'guān'},{w:'国',p:'guó'},{w:'开',p:'kāi'},{w:'看',p:'kàn'},
+    {w:'口',p:'kǒu'},{w:'快',p:'kuài'},{w:'考',p:'kǎo'},{w:'课',p:'kè'},
+    {w:'好',p:'hǎo'},{w:'喝',p:'hē'},{w:'和',p:'hé'},{w:'很',p:'hěn'},
+    {w:'花',p:'huā'},{w:'话',p:'huà'},{w:'回',p:'huí'},{w:'会',p:'huì'},
+  ]},
+  // ── 易混韵母 ──
+  {nm:'🎯 in-ing',tp:'fin',w:[
+    {w:'今',p:'jīn'},{w:'近',p:'jìn'},{w:'进',p:'jìn'},{w:'信',p:'xìn'},
+    {w:'因',p:'yīn'},{w:'音',p:'yīn'},{w:'心',p:'xīn'},{w:'星',p:'xīng'},
+    {w:'行',p:'xíng'},{w:'明',p:'míng'},{w:'名',p:'míng'},{w:'听',p:'tīng'},
+    {w:'请',p:'qǐng'},{w:'零',p:'líng'},{w:'定',p:'dìng'},{w:'病',p:'bìng'},
+  ]},
+  {nm:'🎯 en-eng',tp:'fin',w:[
+    {w:'真',p:'zhēn'},{w:'很',p:'hěn'},{w:'怎',p:'zěn'},{w:'身',p:'shēn'},
+    {w:'冷',p:'lěng'},{w:'能',p:'néng'},{w:'成',p:'chéng'},{w:'生',p:'shēng'},
+    {w:'朋',p:'péng'},{w:'风',p:'fēng'},{w:'等',p:'děng'},{w:'更',p:'gèng'},
+  ]},
+  {nm:'🎯 an-ang',tp:'fin',w:[
+    {w:'三',p:'sān'},{w:'山',p:'shān'},{w:'站',p:'zhàn'},{w:'看',p:'kàn'},
+    {w:'半',p:'bàn'},{w:'饭',p:'fàn'},{w:'帮',p:'bāng'},{w:'长',p:'cháng'},
+    {w:'上',p:'shàng'},{w:'方',p:'fāng'},{w:'旁',p:'páng'},{w:'当',p:'dāng'},
+  ]},
+  // ── 声调练习 ──
+  {nm:'🎵 四声',tp:'tone',w:[
+    {w:'妈',p:'mā'},{w:'麻',p:'má'},{w:'马',p:'mǎ'},{w:'骂',p:'mà'},
+    {w:'诗',p:'shī'},{w:'时',p:'shí'},{w:'使',p:'shǐ'},{w:'是',p:'shì'},
+    {w:'夫',p:'fū'},{w:'福',p:'fú'},{w:'府',p:'fǔ'},{w:'富',p:'fù'},
+    {w:'踢',p:'tī'},{w:'提',p:'tí'},{w:'体',p:'tǐ'},{w:'替',p:'tì'},
+  ]},
+  // ── 日常 ──
+  {nm:'🍎 日常',tp:'keb',w:[
+    {w:'你好吗',p:'nǐ hǎo ma'},{w:'早上好',p:'zǎo shang hǎo'},{w:'明天见',p:'míng tiān jiàn'},
+    {w:'请问',p:'qǐng wèn'},{w:'没关系',p:'méi guān xì'},{w:'没问题',p:'méi wèn tí'},
+    {w:'加油',p:'jiā yóu'},{w:'很棒',p:'hěn bàng'},{w:'生日快乐',p:'shēng rì kuài lè'},
+    {w:'我爱你',p:'wǒ ài nǐ'},{w:'谢谢你',p:'xiè xiè nǐ'},{w:'对不起',p:'duì bu qǐ'},
+  ]},
+  {nm:'🦊 成语',tp:'keb',w:[
+    {w:'一心一意',p:'yī xīn yī yì'},{w:'三心二意',p:'sān xīn èr yì'},
+    {w:'五颜六色',p:'wǔ yán liù sè'},{w:'七上八下',p:'qī shàng bā xià'},
+    {w:'守株待兔',p:'shǒu zhū dài tù'},{w:'画蛇添足',p:'huà shé tiān zú'},
+    {w:'亡羊补牢',p:'wáng yáng bǔ láo'},{w:'对牛弹琴',p:'duì niú tán qín'},
   ]},
 ];
 
-// ════════════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════════════
-let currentUnit = 0;
-let currentIndex = 0;
-let showPinyin = true;
-let learned = loadLearned();
-let errors = loadErrors();
-let quizAnswered = false;
+// ══ STATE ══
+let cu=0, ci=0, sp=true;
+let ti=0; // type index within shuffled words
+let twords=[]; // shuffled type words
+let le={}, er=[], qc=0, qt=0;
+try{le=JSON.parse(localStorage.getItem('pd_le')||'{}')}catch{}
+try{er=JSON.parse(localStorage.getItem('pd_er')||'[]')}catch{}
 
-// ════════════════════════════════════════════════════════════
-//  DOM
-// ════════════════════════════════════════════════════════════
-const $ = id => document.getElementById(id);
-const mainWord = $('main-word');
-const pinyinRow = $('pinyin-row');
-const playBtn = $('play-btn');
-const prevBtn = $('prev-btn');
-const nextBtn = $('next-btn');
-const togglePyBtn = $('toggle-py-btn');
-const shuffleBtn = $('shuffle-btn');
-const unitBar = $('unit-bar');
-const wordList = $('word-list');
-const toast = $('toast');
-const quizWord = $('quiz-word');
-const quizOptions = $('quiz-options');
-const quizNext = $('quiz-next');
-const errBook = $('err-book');
-const tabErrBadge = $('tab-err-badge');
-const learnedCount = $('learned-count');
-const correctCount = $('correct-count');
-const rateDisplay = $('rate-display');
+const $=id=>document.getElementById(id);
 
-// ════════════════════════════════════════════════════════════
-//  LOCAL STORAGE
-// ════════════════════════════════════════════════════════════
-function loadLearned() {
-  try { return JSON.parse(localStorage.getItem('pd_learned') || '{}'); } catch { return {}; }
-}
-function saveLearned() { localStorage.setItem('pd_learned', JSON.stringify(learned)); }
+function spk(t){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';u.rate=.85;speechSynthesis.speak(u)}
 
-function loadErrors() {
-  try { return JSON.parse(localStorage.getItem('pd_errors') || '[]'); } catch { return []; }
-}
-function saveErrors() { localStorage.setItem('pd_errors', JSON.stringify(errors)); updateErrorTab(); }
+function shuf(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-// ════════════════════════════════════════════════════════════
-//  SPEECH
-// ════════════════════════════════════════════════════════════
-function speakWord(word) {
-  if (!word) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(word);
-  u.lang = 'zh-CN'; u.rate = 0.85;
-  speechSynthesis.speak(u);
+function bldChars(el,w,sh){
+  el.innerHTML='';const ps=w.p.split(/\s+/);
+  [...w.w].forEach((c,i)=>{
+    const s=document.createElement('span');s.className='ch';
+    const p=document.createElement('span');p.className='py-ab'+(sh?' sh':'');
+    p.textContent=ps[i]||'';s.appendChild(p);
+    const ch=document.createElement('span');ch.textContent=c;ch.style.cursor='pointer';
+    ch.onclick=e=>{e.stopPropagation();spk(c)};s.appendChild(ch);el.appendChild(s);
+  })
 }
 
-function speakChar(ch) {
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(ch);
-  u.lang = 'zh-CN'; u.rate = 0.8;
-  speechSynthesis.speak(u);
+function mkLearned(w){le[w.w]=(le[w.w]||0)+1;localStorage.setItem('pd_le',JSON.stringify(le));upSt()}
+
+function upSt(){$('lc').textContent=Object.keys(le).length;$('cc').textContent=qc;$('rc').textContent=qt?Math.round(qc/qt*100)+'%':'0%'}
+function upEb(){const e=$('ebadge');e.textContent=er.length;e.style.display=er.length?'inline':'none'}
+function addEr(w){if(!er.find(x=>x.w===w.w))er.push({w:w.w,p:w.p});localStorage.setItem('pd_er',JSON.stringify(er));upEb()}
+
+function tt(e){$('tt').textContent=e;$('tt').classList.add('sh');setTimeout(()=>$('tt').classList.remove('sh'),500)}
+
+// ══ TYPING ══
+function initTypeWords(){
+  const ww=U[cu].w;
+  twords=shuf([...ww]);
+  ti=0;
 }
-
-// ════════════════════════════════════════════════════════════
-//  DISPLAY WORD
-// ════════════════════════════════════════════════════════════
-function markLearned(word) {
-  learned[word.w] = (learned[word.w] || 0) + 1;
-  saveLearned();
-  updateStats();
+function shType(){
+  if(!twords.length)initTypeWords();
+  if(ti>=twords.length){ti=0;twords=shuf([...twords])}
+  const w=twords[ti];
+  $('tp-i').textContent=ti+1;$('tp-n').textContent=twords.length;
+  bldChars($('tw'),w,false);
+  $('tpy').textContent='';
+  $('tp-in').value='';$('tp-in').className='';$('tp-in').focus();
+  $('tp-fb').textContent='';$('tp-fb').className='';
 }
-
-function getCurrentWords() { return UNITS[currentUnit].words; }
-
-function showWord(index) {
-  const words = getCurrentWords();
-  if (index < 0) index = words.length - 1;
-  if (index >= words.length) index = 0;
-  currentIndex = index;
-  const item = words[currentIndex];
-  if (!item) return;
-
-  // Build char display with clickable characters
-  mainWord.innerHTML = '';
-  [...item.w].forEach(ch => {
-    const span = document.createElement('span');
-    span.className = 'char';
-    const pySpan = document.createElement('span');
-    pySpan.className = 'py-above' + (showPinyin ? ' show' : '');
-    const pys = item.p.split(/\s+/);
-    const idx = [...item.w].indexOf(ch);
-    pySpan.textContent = pys[idx] || '';
-    span.appendChild(pySpan);
-    const chSpan = document.createElement('span');
-    chSpan.textContent = ch;
-    chSpan.style.cssText = 'cursor:pointer';
-    chSpan.onclick = (e) => { e.stopPropagation(); speakChar(ch); };
-    span.appendChild(chSpan);
-    mainWord.appendChild(span);
-  });
-
-  // Pinyin row below
-  pinyinRow.textContent = showPinyin ? item.p : '';
-
-  // Mark as learned
-  markLearned(item);
-
-  // Re-bounce animation
-  const card = $('word-card');
-  card.classList.remove('bounce-in');
-  void card.offsetWidth;
-  card.classList.add('bounce-in');
-}
-
-function refreshCurrentWord() {
-  showWord(currentIndex);
-}
-
-// ════════════════════════════════════════════════════════════
-//  TOGGLE PINYIN
-// ════════════════════════════════════════════════════════════
-togglePyBtn.onclick = () => {
-  showPinyin = !showPinyin;
-  togglePyBtn.textContent = showPinyin ? '🙈 隐藏拼音' : '👁 显示拼音';
-  refreshCurrentWord();
+$('tp-c').onclick=()=>{
+  const w=twords[ti];if(!w)return;
+  const v=$('tp-in').value.trim().toLowerCase();
+  if(!v)return;
+  const t=w.p.toLowerCase();
+  if(v===t){
+    $('tp-in').className='ok';
+    $('tp-fb').textContent='✅ 正确！';$('tp-fb').className='tp-fb ok';
+    qc++;qt++;mkLearned(w);tt('👍');
+    setTimeout(()=>{ti++;shType()},600);
+  }else{
+    $('tp-in').className='no';
+    $('tpy').textContent='🔊 '+w.p;
+    $('tp-fb').innerHTML='❌ 正确: '+w.p;$('tp-fb').className='tp-fb no';
+    qt++;addEr(w);tt('😅');
+  }
+  upSt();
 };
-
-// ════════════════════════════════════════════════════════════
-//  NAVIGATION
-// ════════════════════════════════════════════════════════════
-prevBtn.onclick = () => showWord(currentIndex - 1);
-nextBtn.onclick = () => showWord(currentIndex + 1);
-shuffleBtn.onclick = () => {
-  showWord(Math.floor(Math.random() * getCurrentWords().length));
+$('tp-s').onclick=()=>{ti++;shType()};
+$('tp-h').onclick=()=>{
+  const w=twords[ti];if(w){$('tpy').textContent='💡 '+w.p;$('tp-fb').textContent='照着输入';$('tp-fb').className='tp-fb hint';$('tp-in').focus()}
 };
+$('ts').onclick=()=>{const w=twords[ti];if(w)spk(w.w)};
+$('tp-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('tp-c').onclick()}});
 
-// Keyboard left/right navigation
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft') showWord(currentIndex - 1);
-  if (e.key === 'ArrowRight') showWord(currentIndex + 1);
-  if (e.key === ' ') { e.preventDefault(); speakWord(getCurrentWords()[currentIndex]?.w); }
-});
+// ══ READ ══
+function shRead(){
+  const w=U[cu].w[ci];if(!w)return;
+  bldChars($('rw'),w,sp);
+  $('rpy').textContent=sp?w.p:'';
+  const c=$('rc');c.classList.remove('bo');void c.offsetWidth;c.classList.add('bo');
+  mkLearned(w);
+}
+$('pr').onclick=()=>{ci--;if(ci<0)ci=U[cu].w.length-1;shRead()};
+$('nx').onclick=()=>{ci++;if(ci>=U[cu].w.length)ci=0;shRead()};
+$('shf').onclick=()=>{ci=Math.floor(Math.random()*U[cu].w.length);shRead()};
+$('tpy-btn').onclick=()=>{sp=!sp;$('tpy-btn').textContent=sp?'🙈 隐藏':'👁 显示';shRead()};
+$('pb').onclick=()=>{const w=U[cu].w[ci];if(w)spk(w.w)};
 
-// ════════════════════════════════════════════════════════════
-//  PLAY BUTTON
-// ════════════════════════════════════════════════════════════
-playBtn.onclick = () => {
-  const item = getCurrentWords()[currentIndex];
-  if (item) speakWord(item.w);
-};
-
-// Click any char
-mainWord.addEventListener('click', (e) => {
-  // handled by individual spans
-});
-
-// ════════════════════════════════════════════════════════════
-//  UNIT SELECTOR
-// ════════════════════════════════════════════════════════════
-function buildUnits() {
-  unitBar.innerHTML = '';
-  UNITS.forEach((u, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'unit-btn' + (i === currentUnit ? ' active' : '');
-    btn.textContent = u.name;
-    btn.onclick = () => {
-      currentUnit = i;
-      document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentIndex = 0;
-      showWord(0);
-      buildWordList();
-    };
-    unitBar.appendChild(btn);
+// ══ UNITS ══
+function bldUnits(){
+  $('ub').innerHTML='';
+  U.forEach((u,i)=>{
+    const b=document.createElement('button');b.className='unit-btn'+(i===cu?' active':'');
+    b.textContent=u.nm;
+    b.onclick=()=>{cu=i;ci=0;initTypeWords();
+      document.querySelectorAll('.unit-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');shType();shRead();bldList()};
+    $('ub').appendChild(b);
   });
 }
 
-// ════════════════════════════════════════════════════════════
-//  WORD LIST
-// ════════════════════════════════════════════════════════════
-function buildWordList() {
-  wordList.innerHTML = '';
-  getCurrentWords().forEach((item, i) => {
-    const a = document.createElement('a');
-    a.innerHTML = `${item.w} <span class="word-list-py">${item.p}</span>`;
-    a.href = '#';
-    a.onclick = (e) => {
-      e.preventDefault();
-      switchTab('sec-pointread');
-      currentIndex = i;
-      showWord(i);
-    };
-    wordList.appendChild(a);
+function bldList(){
+  $('wl').innerHTML='';
+  U[cu].w.forEach((item,i)=>{
+    const a=document.createElement('a');
+    a.innerHTML=`${item.w} <span class="wl-p">${item.p}</span>`;
+    a.href='#';a.onclick=e=>{e.preventDefault();switchTab('s-read');ci=i;shRead()};
+    $('wl').appendChild(a);
   });
 }
 
-// ════════════════════════════════════════════════════════════
-//  TAB SWITCHING
-// ════════════════════════════════════════════════════════════
-function switchTab(tabId) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
-
-  if (tabId === 'sec-list') buildWordList();
-  if (tabId === 'sec-quiz') showQuiz();
-  if (tabId === 'sec-errors') buildErrorBook();
-}
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
-
-// ════════════════════════════════════════════════════════════
-//  QUIZ
-// ════════════════════════════════════════════════════════════
-let quizCorrect = 0;
-let quizTotal = 0;
-
-function showQuiz() {
-  const words = getCurrentWords();
-  if (words.length < 4) {
-    quizWord.textContent = '词太少啦';
-    quizOptions.innerHTML = '';
-    return;
-  }
-
-  quizAnswered = false;
-
-  // Pick a random word for the question
-  const qIdx = Math.floor(Math.random() * words.length);
-  const qWord = words[qIdx];
-  quizWord.textContent = qWord.w;
-
-  // Pick 3 other random pinyin as wrong options
-  const others = words.filter(w => w.w !== qWord.w);
-  shuffle(others);
-  const wrongs = others.slice(0, 3).map(w => w.p);
-  const options = shuffle([qWord.p, ...wrongs]);
-
-  quizOptions.innerHTML = '';
-  options.forEach(opt => {
-    const btn = document.createElement('div');
-    btn.className = 'quiz-option';
-    btn.textContent = opt;
-    btn.onclick = () => {
-      if (quizAnswered) return;
-      quizAnswered = true;
-      quizTotal++;
-      document.querySelectorAll('.quiz-option').forEach(b => {
-        if (b.textContent === qWord.p) b.classList.add('correct');
-      });
-      if (opt === qWord.p) {
-        btn.classList.add('correct');
-        quizCorrect++;
-        showToast('👍');
-      } else {
-        btn.classList.add('wrong');
-        addErrorItem(qWord);
-        showToast('😅');
-      }
-      updateStats();
+// ══ QUIZ ══
+function shQuiz(){
+  const ws=U[cu].w;if(ws.length<4){$('qw').textContent='词太少';$('qo').innerHTML='';return}
+  const q=ws[Math.floor(Math.random()*ws.length)];
+  const o=ws.filter(x=>x.w!==q.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.p);
+  const op=[q.p,...o].sort(()=>Math.random()-.5);
+  $('qw').textContent=q.w;
+  $('qo').innerHTML='';let ans=false;
+  op.forEach(opt=>{
+    const b=document.createElement('div');b.className='qz-op';b.textContent=opt;
+    b.onclick=()=>{
+      if(ans)return;ans=true;qt++;
+      document.querySelectorAll('.qz-op').forEach(x=>{if(x.textContent===q.p)x.classList.add('ok')});
+      if(opt===q.p){b.classList.add('ok');qc++;tt('👍')}
+      else{b.classList.add('no');addEr(q);tt('😅')}
+      upSt();
     };
-    quizOptions.appendChild(btn);
+    $('qo').appendChild(b);
+  });
+}
+$('qn').onclick=shQuiz;
+
+// ══ PINYIN CHART ══
+const SM=['b','p','m','f','d','t','n','l','g','k','h','j','q','x','zh','ch','sh','r','z','c','s','y','w'];
+const YM=['a','o','e','i','u','ü','ai','ei','ui','ao','ou','iu','ie','üe','er','an','en','in','un','ün','ang','eng','ing','ong'];
+const YMN=['啊','喔','鹅','衣','乌','迂','爱','诶','微','奥','欧','优','耶','约','儿','安','恩','因','温','晕','昂','灯','英','钟'];
+
+function bldPY(){
+  const sg=$('sm-grid');sg.innerHTML='';
+  SM.forEach(s=>{
+    const d=document.createElement('div');d.className='py-c';
+    const l=document.createElement('div');l.className='py-l';l.textContent=s;
+    const b=document.createElement('div');b.className='py-s';b.textContent='声母';
+    d.appendChild(l);d.appendChild(b);
+    d.onclick=()=>spk(s+'母');
+    sg.appendChild(d);
+  });
+  const yg=$('ym-grid');yg.innerHTML='';
+  YM.forEach((y,i)=>{
+    const d=document.createElement('div');d.className='py-c ym';
+    const l=document.createElement('div');l.className='py-l';l.textContent=y;
+    const b=document.createElement('div');b.className='py-s';b.textContent=YMN[i];
+    d.appendChild(l);d.appendChild(b);
+    d.onclick=()=>spk(y+'母');
+    yg.appendChild(d);
   });
 }
 
-quizNext.onclick = showQuiz;
-
-// ════════════════════════════════════════════════════════════
-//  ERROR BOOK
-// ════════════════════════════════════════════════════════════
-function addErrorItem(word) {
-  if (!errors.find(e => e.w === word.w)) {
-    errors.push({ w: word.w, p: word.p });
-  }
-  saveErrors();
-}
-
-function buildErrorBook() {
-  errBook.innerHTML = '';
-  if (errors.length === 0) {
-    errBook.innerHTML = '<div class="empty-state"><div class="big">🎉</div><p>没有错题，太棒了！</p></div>';
-    return;
-  }
-  errors.forEach((e, i) => {
-    const div = document.createElement('div');
-    div.className = 'err-item bounce-in';
-    div.innerHTML = `
-      <div>
-        <div class="err-word">${e.w}</div>
-        <div class="err-py">${e.p}</div>
-      </div>
-      <button class="err-del" data-idx="${i}">删除</button>
-    `;
-    div.querySelector('.err-del').onclick = () => {
-      errors.splice(i, 1);
-      saveErrors();
-      buildErrorBook();
-    };
-    // Click word to jump to point-read
-    div.querySelector('.err-word').style.cursor = 'pointer';
-    div.querySelector('.err-word').onclick = () => {
-      const words = getCurrentWords();
-      const idx = words.findIndex(w => w.w === e.w);
-      if (idx >= 0) {
-        currentIndex = idx;
-        switchTab('sec-pointread');
-        showWord(idx);
-      }
-    };
-    errBook.appendChild(div);
+// ══ ERRORS ══
+function bldErr(){
+  $('eb').innerHTML='';
+  if(!er.length){$('eb').innerHTML='<div class="empty"><div class="big">🎉</div><p>没有错题</p></div>';return}
+  er.forEach((e,i)=>{
+    const d=document.createElement('div');d.className='err-item bo';
+    d.innerHTML=`<div><div class="e-w" style="cursor:pointer">${e.w}</div><div class="e-p">${e.p}</div></div><button class="e-d">删除</button>`;
+    d.querySelector('.e-d').onclick=()=>{er.splice(i,1);localStorage.setItem('pd_er',JSON.stringify(er));bldErr();upEb()};
+    d.querySelector('.e-w').onclick=()=>{const idx=U[cu].w.findIndex(x=>x.w===e.w);if(idx>=0){ci=idx;switchTab('s-read');shRead()}};
+    $('eb').appendChild(d);
   });
 }
 
-function updateErrorTab() {
-  tabErrBadge.textContent = errors.length;
-  tabErrBadge.style.display = errors.length > 0 ? 'inline' : 'none';
+// ══ TABS ══
+function switchTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('act',b.dataset.t===id));
+  if(id==='s-type')shType();
+  if(id==='s-read')shRead();
+  if(id==='s-list')bldList();
+  if(id==='s-py')bldPY();
+  if(id==='s-quiz')shQuiz();
+  if(id==='s-err')bldErr();
 }
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.t)));
 
-// ════════════════════════════════════════════════════════════
-//  STATS
-// ════════════════════════════════════════════════════════════
-function updateStats() {
-  const total = errors.length + quizTotal;
-  const correct = quizCorrect;
-  learnedCount.textContent = Object.keys(learned).length;
-  correctCount.textContent = quizCorrect;
-  rateDisplay.textContent = quizTotal > 0 ? Math.round(quizCorrect / quizTotal * 100) + '%' : '0%';
-}
-
-// ════════════════════════════════════════════════════════════
-//  TOAST
-// ════════════════════════════════════════════════════════════
-function showToast(emoji) {
-  toast.textContent = emoji;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 500);
-}
-
-// ════════════════════════════════════════════════════════════
-//  UTILITY
-// ════════════════════════════════════════════════════════════
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// ════════════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════════════
-buildUnits();
-showWord(0);
-updateStats();
-updateErrorTab();
-buildWordList();
+// ══ INIT ══
+bldUnits();initTypeWords();shType();shRead();upSt();upEb();bldList();
 </script>
 </body>
 </html>
