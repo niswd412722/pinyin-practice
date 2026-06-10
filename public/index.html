@@ -221,6 +221,7 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
   <button class="tab-btn" data-t="s-l"><span class="ti">📋</span><span>词库</span></button>
   <button class="tab-btn" data-t="s-q"><span class="ti">✍️</span><span>测验</span></button>
   <button class="tab-btn" data-t="s-st"><span class="ti">📊</span><span>统计</span></button>
+  <button class="tab-btn" data-t="s-e"><span class="ti">📕</span><span>错题</span></button>
 </div>
 
 <script>
@@ -317,6 +318,7 @@ const $=id=>document.getElementById(id);
 
 function sv(){localStorage.setItem('pd',JSON.stringify({le,er,stk,star,lcd,qc,qt,tdc}))}
 function spk(t){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';u.rate=.85;speechSynthesis.speak(u)}
+function stripP(t){return t.toLowerCase().replace(/[āáǎà]/g,'a').replace(/[ōóǒò]/g,'o').replace(/[ēéěè]/g,'e').replace(/[īíǐì]/g,'i').replace(/[ūúǔù]/g,'u').replace(/[ǖǘǚǜü]/g,'v').replace(/[ĀÁǍÀ]/g,'a').replace(/[ŌÓǑÒ]/g,'o').replace(/[ĒÉĚÈ]/g,'e').replace(/[ĪÍǏÌ]/g,'i').replace(/[ŪÚǓÙ]/g,'u').replace(/[ǕǗǙǛ]/g,'v').replace(/\s+/g,'').replace(/[^a-z0-9v\s]/g,'')}
 function sf(e){spk(e?'👍':'😅')}
 function sh(a){for(let i=a.length-1;i>0;i--){const j=~~(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function tt(e){$('tt').textContent=e;$('tt').classList.add('sh');setTimeout(()=>$('tt').classList.remove('sh'),500)}
@@ -361,8 +363,8 @@ function sT(){
   bldC($('tw'),w,false);$('tpy').textContent='';$('tpi').value='';$('tpi').className='';$('tpi').focus();$('tpf').textContent='';$('tpf').className='';
 }
 $('tpc').onclick=()=>{
-  const w=tws[ti];if(!w)return;const v=$('tpi').value.trim().toLowerCase();
-  if(!v)return;const t=w.p.toLowerCase();
+  const w=tws[ti];if(!w)return;const v=stripP($('tpi').value);
+  if(!v)return;const t=stripP(w.p);
   if(v===t){
     $('tpi').className='ok';$('tpf').textContent='✅ 正确！';$('tpf').className='tpf ok';
     qc++;qt++;tdc++;mL(w);star+=1;sv();sf(1);tt('👍');
@@ -370,12 +372,12 @@ $('tpc').onclick=()=>{
     setTimeout(()=>{ti++;sT()},600);
   }else{
     $('tpi').className='no';$('tpy').textContent='🔊 '+w.p;
-    $('tpf').innerHTML='❌ 正确: '+w.p;$('tpf').className='tpf no';
+    $('tpf').innerHTML='❌ 正确: '+stripP(w.p);$('tpf').className='tpf no';
     qt++;tdc++;aE(w);sv();sf(0);tt('😅');upSt();
   }
 };
 $('tps').onclick=()=>{ti++;sT()};
-$('tph').onclick=()=>{const w=tws[ti];if(w){$('tpy').textContent='💡 '+w.p;$('tpf').textContent='照着输入';$('tpf').className='tpf hint';$('tpi').focus()}};
+$('tph').onclick=()=>{const w=tws[ti];if(w){$('tpy').textContent='💡 '+stripP(w.p);$('tpf').textContent='照着输入';$('tpf').className='tpf hint';$('tpi').focus()}};
 $('ts').onclick=()=>{const w=tws[ti];if(w)spk(w.w)};
 $('tpi').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('tpc').onclick()}});
 
@@ -423,14 +425,15 @@ function sQ(){
   const ws=U[cu].w;if(ws.length<4){$('qw').textContent='词太少';$('qo').innerHTML='';return}
   const q=ws[~~(Math.random()*ws.length)];
   const o=ws.filter(x=>x.w!==q.w).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.p);
-  const op=[q.p,...o].sort(()=>Math.random()-.5);
+  const qstripped=stripP(q.p);
+  const op=[qstripped,...o.map(x=>stripP(x))].sort(()=>Math.random()-.5);
   $('qw').textContent=q.w;$('qo').innerHTML='';let ans=false;
   op.forEach(opt=>{
     const b=document.createElement('div');b.className='qz-op';b.textContent=opt;
     b.onclick=()=>{
       if(ans)return;ans=true;
-      document.querySelectorAll('.qz-op').forEach(x=>{if(x.textContent===q.p)x.classList.add('ok')});
-      if(opt===q.p){b.classList.add('ok');qc++;star+=1;sf(1);tt('👍')}
+      document.querySelectorAll('.qz-op').forEach(x=>{if(x.textContent===qstripped)x.classList.add('ok')});
+      if(opt===qstripped){b.classList.add('ok');qc++;star+=1;sf(1);tt('👍')}
       else{b.classList.add('no');aE(q);sf(0);tt('😅')}
       qt++;sv();upSt();$('star-cnt').textContent=star;
     };$('qo').appendChild(b);
